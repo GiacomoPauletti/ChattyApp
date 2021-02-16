@@ -1,6 +1,6 @@
 from utilities.abcs import *
 
-class ChatID:
+class Chatid
     def __init__(self, value : str):
         self.value=value
 
@@ -8,18 +8,18 @@ class ChatID:
 
 
 class Chat(IObservable):
-    def __init__(self, chatid : ChatID):
+    def __init__(self, chatid : Chatid):
         self.chatid=chatid
-        self.___observers=[]
+        self.__users=[]
 
-    def registerObserver(self, observer: IObserver) -> None:
-        self.___observers.append(observer)
+    def register_user(self, user: IObserver) -> None:
+        self.__users.append(observer)
 
-    def removeObserver(self, observer : IObserver) -> None:
+    def removeObserver(self, user : IObserver) -> None:
         if observer not in self.___observers:
             return None
-        self.___observers.remove(observer)
+        self.__users.remove(user)
 
     def notify(self):
-        for observer in self.__observers:
-            observer.update()
+        for user in self.__users:
+            users.update()
