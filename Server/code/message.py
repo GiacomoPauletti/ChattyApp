@@ -2,7 +2,7 @@ import abc
 
 class Message:
     @classmethod
-    def _fromString(cls, string : str):
+    def fromString(cls, string : str):
         closing_header_index=string.index('>')
         header=string[1:closing_header_index]
         content=string[closing_header_index+1:]
@@ -10,13 +10,13 @@ class Message:
         return cls(header=header, content=content)
 
     @classmethod
-    def _fromTuple(cls, tpl : tuple):
+    def fromTuple(cls, tpl : tuple):
         if len(tpl) != 2:
             return None
         return cls(header=tpl[0], content=tpl[1])
 
     @classmethod
-    def _fromDict(cls, dictionary : dict):
+    def fromDict(cls, dictionary : dict):
         return cls(header=dictionary['header'], content=dictionary['content'])
 
     def __init__(self, header : str, content : str):
@@ -30,7 +30,7 @@ class Message:
         return self.__content
 
     def __str__(self):
-        return f'<{self.__header}>{self.__content}'
+        return f'{self.__header}|{self.__content}'
 
 
 class IMessageFactory(abc.ABC):
