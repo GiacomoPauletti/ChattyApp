@@ -1,25 +1,47 @@
-from utilities.abcs import *
+from utilities.abcs import IObserver, IObservable
 
 class Chatid
     def __init__(self, value : str):
-        self.value=value
+        self.__value=value
+    
+    def getValue(self):
+        return self.__value
 
-    ...
-
-
-class Chat(IObservable):
+class Chat(IObservable, IObserver):
     def __init__(self, chatid : Chatid):
         self.chatid=chatid
-        self.__users=[]
+        self.__all_users=[]
+        self.__active_users=[]
 
-    def register_user(self, user: IObserver) -> None:
-        self.__users.append(observer)
+    def register_active_user(self, user: User) -> None:
+        """Part of the Observer pattern (Observable)
+        When a certain user wants to receive messages from this chat, this method must be called"""
+        self.__active_users.append(user)
 
-    def removeObserver(self, user : IObserver) -> None:
-        if observer not in self.___observers:
-            return None
-        self.__users.remove(user)
+    def remove_active_user(self, user : User) -> None:
+        """Part of the Observer pattern (Observable)
+        When a certain user for certain reason doesn't want to receive messages from this chat (at least not directly), this method must be called"""
 
-    def notify(self):
-        for user in self.__users:
-            users.update()
+        if user in self.__active_users:
+            self.__active_users.remove(user)
+
+    def notify_active_users(self, message : Message) -> None
+        """Part of the Observer pattern (Observable)
+        It sends to all the users the new message"""
+
+        for user in self.__active_users:
+            user.receive_new_message(message)
+
+    def receive_new_message(self, message : Message) -> None:
+        """Part of the Observer pattern (Observer)
+        It is called by a certain user and, by using a method of this class, it sends to all the users the new message
+        
+        Then the message is stored in the database"""
+
+        self.notify_active_users(message)
+
+        #then the message should be saved in database
+
+    def getChatid(self):
+        return self.__chatid.getValue()
+
