@@ -1,51 +1,35 @@
 import abc
+from chat import Chatid
 
-class Message:
-    @classmethod
-    def fromString(cls, string : str):
-        closing_header_index=string.index('>')
-        header=string[1:closing_header_index]
-        content=string[closing_header_index+1:]
-
-        return cls(header=header, content=content)
+class ChatMessage:
 
     @classmethod
-    def fromTuple(cls, tpl : tuple):
-        if len(tpl) != 2:
+    def from_string(cls, message : str):
+        """Create a ChatMessage class from a string of the form: sender_private_name|receiver_chat|content"""
+
+        if message.count('|') != 2:
+            print('WARNING: the string passed had not the right number of fields (2)')
             return None
-        return cls(header=tpl[0], content=tpl[1])
 
-    @classmethod
-    def fromDict(cls, dictionary : dict):
-        return cls(header=dictionary['header'], content=dictionary['content'])
+        sender_private_name, receiver_chat_id, content = message.split('|')
+        receiver_chat_id=Chatid.from_string(receiver_chat_id)
 
-    def __init__(self, header : str, content : str):
-        self.__header = header
+        return cls(sender=sender_private_name, chat=receiver_chat_id, content=content)
+
+    def __init__(self, sender : str, chat: Chatid,  content : str):
+        self.__sender_private_name=sender
+        self.__receiver_chat_id=chat
         self.__content = content
 
-    def getHeader(self):
-        return self.__header
-    
-    def getContent(self):
+    def get_sender(self):
+        return self.__sender_private_name
+
+    def get_chat(self):
+        return self.__receiver_chat_id
+
+    def get_content(self):
         return self.__content
 
     def __str__(self):
-        return f'{self.__header}|{self.__content}'
+        return f'{self.__sender_private_name}|{self.__receiver_chat_id}|{self.__content}'
 
-
-class IMessageFactory(abc.ABC):
-    @abc.abstractmethod
-    def createMessage(self):
-        return Message()
-
-class FromStringMessageFactory(IMessageFactory):
-    def createMessage(self, string : str):
-        return Message._fromString(string)
-
-class FromTupleMessageFactory(IMessageFactory):
-    def createMessage(self, tpl : tuple):
-        return Message._fromTuple(tpl)
-
-class FromDictMessageFactory(IMessageFactory):
-    def createMessage(self, dictionary : dict):
-        return Message._fromDict(dictionary)
