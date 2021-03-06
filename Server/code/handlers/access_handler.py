@@ -36,12 +36,14 @@ class AccessHandler:
         while True:
             msg=client.recvwh()
             msg=self.__UserMessage.from_string(message)
-
-            has_accessed=self.__access_type_map[msg.type](client=client, client_address=address, msg=msg)
-            if has_accessed:
-                self.__authorized_user_register.add(client_address, msg.user_private_name)
-                break
-
+            
+            try:
+                has_accessed=self.__access_type_map[msg.type](client=client, client_address=address, msg=msg)
+                if has_accessed:
+                    self.__authorized_user_register.add(client_address, msg.user_private_name)
+                    break
+            except:
+                continue
 
     def login(self, client : socket, client_address : tuple, msg : Message):
         """AccessHandler.login(self, client : socket,, client_address : tuple, msg : Message) -> bool

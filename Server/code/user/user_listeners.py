@@ -1,19 +1,18 @@
 import socket
 from user.user import user_initializator
 from utilities.registers import AuthorizedUserRegister
+from handlers.access_handler import AccessHandler 
 
 class UnaccessedUserListener:
-    def __init__(self):
-        ...
-
+    def __init__(self, access_handler : AccessHandler):
+        self.__access_handler=access_handler 
     def listen(self):
         with socket.create_server(('', 8000)) as listener:
             client, client_address = listener.accept()    #timeout=...
 
-            #create new User
-            #make the UserActivityHandler (or whatever is the one which login or register the user) listen for the new user
+            self.__access_handler.handle_access(client=client, client_address=client_address)
 
-class AccesseduserListener:
+class AccessedUserListener:
     def __init__(self, authorized_user_register : AuthorizedUserRegister):
         self.__authorized_user_register=authorized_user_register
 
