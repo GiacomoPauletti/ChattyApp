@@ -4,7 +4,7 @@ from message import Message
 import storage
 from storage import UserLogger, UserRegister
 from user import User, UserFactory
-
+"""
 class ActiveUserList:
     def __init__(self):
         self.__active_users={}
@@ -28,7 +28,7 @@ class ActiveUserList:
         for (current_address, current_user) in self.__active_users:
             if current_user == user:
                 return current_address
-
+"""
 
 class AccessHandler:
     def __init__(self, user_logger : UserLogger, user_register : UserRegister, user_factory : UserFactory, user_message : Message, access_answer_message : Message):
@@ -41,18 +41,18 @@ class AccessHandler:
 
         self.__access_type_map={'autologin':self.login, 'register':self.register}
 
-        self.__is_handling=False
 
     def handle_access(self, client : socket, client_address : tuple) -> User:
         #si può creare una classe socket personalizzata che possiede anche il
         #metodo "socket.recv()"
 
-        self.__is_handling=True
-        while self.__is_handling:
+        while True:
             msg=client.recvwh()
             msg=self.__UserMessage.from_string(message)
 
-            self.__access_type_map[msg.type](client=client, client_address=address, msg=msg)
+            has_accessed=self.__access_type_map[msg.type](client=client, client_address=address, msg=msg)
+            if has_accessed:
+                break
 
         disconnection_message=self.__AccessAnswerMessage(answer='disconnecting')
         
@@ -60,21 +60,21 @@ class AccessHandler:
         user=self.__UserFactory(client, address)
         return user
 
-    def autologin(self, client : socket, address : tuple, msg : Message):
-        ...        
+    def autologin(self, client : socket, address : tuple, msg : Message) -> bool:
+        return True
 
-    def register(self, client : socket, client_address : tuple, msg : Message):
+    def register(self, client : socket, client_address : tuple, msg : Message) -> bool:
         
         has_registered_correctly=self.__UserRegister.register(user_private_name=msg.user_private_name, user_password=msg.user_password)
 
         if has_registered_correctly:
             answer_msg=self.__AccessAnswerMessage(answer='success')
-            self.__ishandling=False
         else:
             error_info=self.__UserLogger.getErrorDescription()
             answer_msg=self.__AccessAnswerMessage(answer='error', error_info=error_info)
 
         client.sendwh(answer_msg.to_string())
+        return has_registered_correctly
 
 
     """def login(self, client : socket, client_address : tuple, msg : Message):
