@@ -15,3 +15,4 @@ class UserRegister(abc.ABC):
 
     def get_error_description(self) -> str:
         ...
+            

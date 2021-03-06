@@ -1,5 +1,6 @@
 import abc
-from chat import Chatid
+from utilities.chatid import Chatid
+
 
 class ChatMessage:
 

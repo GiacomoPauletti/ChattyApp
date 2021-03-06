@@ -1,16 +1,7 @@
-from utilities.abcs import IObserver, IObservable
+from utilities.shared_abcs import IObserver, IObservable
+from utilites.chatid import Chatid
+from user.abcs import User
 
-class Chatid:
-    
-    @classmethod
-    def from_string(cls, string : str):
-        return cls(value=string)
-
-    def __init__(self, value : str):
-        self.__value=value
-
-    def getValue(self):
-        return self.__value
 
 class Chat(IObservable, IObserver):
     def __init__(self, chatid : Chatid):
@@ -30,7 +21,7 @@ class Chat(IObservable, IObserver):
         if user in self.__active_users:
             self.__active_users.remove(user)
 
-    def notify_active_users(self, message : Message) -> None
+    def notify_active_users(self, message : Message) -> None:
         """Part of the Observer pattern (Observable)
         It sends to all the users the new message"""
 
