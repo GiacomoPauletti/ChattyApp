@@ -16,3 +16,11 @@ class UserRegister(abc.ABC):
     def get_error_description(self) -> str:
         ...
             
+class UserAccesserFactory(abc.ABC):
+    @abc.abstractmethod
+    def get_logger(self):
+        ...
+        
+    @abc.abstractmethod
+    def get_register(self):
+        ...

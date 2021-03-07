@@ -1,11 +1,19 @@
 from socket import socket
 from message.abcs import Message
 from storage.abcs import UserLogger, UserRegister
+from storage.storage import UserTextAccesserFactory
 from user.abcs import User
 from utilities.registers import AuthorizedUserRegister
 
 #si può creare una classe socket personalizzata che possiede anche il
 #metodo "socket.recv()"
+
+def text_access_handler_factory(user_message, access_answer_message, authorized_user_register):
+    utaf=UserTextAccesserFactory()
+    user_logger=utaf.get_logger()
+    user_register=utaf.get_register
+
+    return AccessHandler(user_logger, user_register, user_message, access_answer_message, authorized_user_register)
 
 class AccessHandler:
     def __init__(self, user_logger : UserLogger, user_register : UserRegister, user_message : Message, access_answer_message : Message, authorized_user_register : AuthorizedUserRegister):
@@ -15,7 +23,7 @@ class AccessHandler:
         self.__UserMessage=user_message  #per ora AccessMessage
         self.__AccessAnswerMessage=access_answer_message #per ora AccessAnswerMessage
 
-        self.__authorized_user_register=pending_access_register
+        self.__authorized_user_register=authorized_user_register
 
         self.__access_type_map={'login':self.login, 'register':self.register, 'disconnect':self.disconnect}
 

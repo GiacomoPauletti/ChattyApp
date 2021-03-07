@@ -5,6 +5,8 @@ import threading
 
 from utilities.shared_abcs import IObservable, IObserver
 from utilities.registers import AuthorizedUserRegister
+from chat.abcs import Chat
+from message.abcs import Message
 
 USER_TICK_MESSAGE='tick'
 

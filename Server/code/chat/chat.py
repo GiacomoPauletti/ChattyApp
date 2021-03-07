@@ -1,6 +1,7 @@
 from utilities.shared_abcs import IObserver, IObservable
-from utilites.chatid import Chatid
+from utilities.chatid import Chatid
 from user.abcs import User
+from message.abcs import Message
 
 
 class Chat(IObservable, IObserver):
@@ -38,6 +39,6 @@ class Chat(IObservable, IObserver):
 
         #then the message should be saved in database
 
-    def getChatid(self):
+    def get_chatid(self):
         return self.__chatid.getValue()
 
