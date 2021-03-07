@@ -3,7 +3,7 @@ from user.user import user_initializator
 from utilities.registers import AuthorizedUserRegister
 from handlers.access_handler import AccessHandler 
 
-class UnaccessedUserListener:
+class UnauthUserListener:
     def __init__(self, access_handler : AccessHandler):
         self.__access_handler=access_handler 
     def listen(self):
@@ -12,7 +12,7 @@ class UnaccessedUserListener:
 
             self.__access_handler.handle_access(client=client, client_address=client_address)
 
-class AccessedUserListener:
+class AuthUserListener:
     def __init__(self, authorized_user_register : AuthorizedUserRegister):
         self.__authorized_user_register=authorized_user_register
 
