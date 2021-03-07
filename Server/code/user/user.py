@@ -1,13 +1,28 @@
 """import sys
 sys.path.append("utilities")"""
 
-import abc
 import threading
 
-from chat import Chat, Chatid
-from utilities.abcs import IObservable, IObserver
+from utilities.shared_abcs import IObservable, IObserver
+from utilities.registers import AuthorizedUserRegister
 
 USER_TICK_MESSAGE='tick'
+
+def user_factory(private_name):
+    return User(private_name)
+
+def remote_user_proxy_factory(client, client_address):
+    return UserRemoteProxy(client, client_address)
+
+def user_initializator(private_name, client, client_address):
+    server_user=user_factory(private_name)
+    remote_user_proxy=remote_user_proxy_factory(client, client_address)
+
+    user_loop_thread=threading.Thread(target=user_loop, args=(server_user, remote_user_proxy))
+    user_loop_thread.start()
+
+
+    
 
 class User(IObserver, IObservable):     
     def __init__(self, private_name):
@@ -68,6 +83,7 @@ class UserRemoteProxy:
     def receive_from_remote(self):
         """message=recvwh(self.__remote_user)
            return message"""
+
 
 def user_loop(server_user, user_remote_proxy):
     """Handles the messages of the remote user that must be sent a certain chat and viceversa"""
