@@ -9,8 +9,8 @@ from utilities.registers import AuthorizedUserRegister
 
 class AccessHandler:
     def __init__(self, user_logger : UserLogger, user_register : UserRegister, user_message : Message, access_answer_message : Message, authorized_user_register : AuthorizedUserRegister):
-        self.__UserLogger=user_logger
-        self.__UserRegister=user_register
+        self.__user_logger=user_logger
+        self.__user_register=user_register
 
         self.__UserMessage=user_message  #per ora AccessMessage
         self.__AccessAnswerMessage=access_answer_message #per ora AccessAnswerMessage
@@ -53,13 +53,13 @@ class AccessHandler:
         If the login isn't successfull, an error descriptions is sent back to the client
         See UserLogger for more informations about the user login"""
         
-        has_logged_correctly=self.__UserLogger.login(user_private_name=msg.user_private_name, user_password=msg.user_password)
+        has_logged_correctly=self.__user_logger.login(user_private_name=msg.user_private_name, user_password=msg.user_password)
 
         if has_logged_correctly:
             answer_msg=self.__AccessAnswerMessage(answer='success')
 
         else:
-            error_info=self.__UserLogger.get_error_description()
+            error_info=self.__user_logger.get_error_description()
             answer_msg=self.__AccessAnswerMessage(answer='error', error_info=error_info)
 
         client.sendwh(answer_msg.to_string())
@@ -73,12 +73,12 @@ class AccessHandler:
         If the registration isn't successfull, an error descriptions is sent back to the client
         See UserLogger for more informations about the user registration"""
 
-        has_registered_correctly=self.__UserRegister.register(user_private_name=msg.user_private_name, user_password=msg.user_password)
+        has_registered_correctly=self.__user_register.register(user_private_name=msg.user_private_name, user_password=msg.user_password)
 
         if has_registered_correctly:
             answer_msg=self.__AccessAnswerMessage(answer='success')
         else:
-            error_info=self.__UserRegister.get_error_description()
+            error_info=self.__user_register.get_error_description()
             answer_msg=self.__AccessAnswerMessage(answer='error', error_info=error_info)
 
         client.sendwh(answer_msg.to_string())
