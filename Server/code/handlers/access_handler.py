@@ -1,4 +1,6 @@
 from socket import socket
+import threading
+
 from message.abcs import Message
 from storage.abcs import UserLogger, UserRegister
 from storage.storage import UserTextAccesserFactory
@@ -29,7 +31,7 @@ class AccessHandler:
 
     def handle_access(self, client : socket, client_address : tuple) -> None:
 
-        handle_access_thread=threading.Thread(target=self._handler_access, args=(client, client_address))
+        handle_access_thread=threading.Thread(target=self._handle_access, args=(client, client_address))
         handle_access_thread.start()
 
     def _handle_access(self, client : socket, client_address : tuple) -> None:
