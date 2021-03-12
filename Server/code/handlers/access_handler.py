@@ -44,7 +44,7 @@ class AccessHandler:
         """
 
         while True:
-            msg=client.recvwh()
+            msg=client.recv_with_header()
             msg=self.__UserMessage.from_string(message)
             
             try:
@@ -72,7 +72,7 @@ class AccessHandler:
             error_info=self.__user_logger.get_error_description()
             answer_msg=self.__AccessAnswerMessage(answer='error', error_info=error_info)
 
-        client.sendwh(answer_msg.to_string())
+        client.send_with_header(answer_msg.to_string())
         return has_logged_correctly
 
     def register(self, client : socket, client_address : tuple, msg : Message) -> bool:
@@ -91,7 +91,7 @@ class AccessHandler:
             error_info=self.__user_register.get_error_description()
             answer_msg=self.__AccessAnswerMessage(answer='error', error_info=error_info)
 
-        client.sendwh(answer_msg.to_string())
+        client.send_with_header(answer_msg.to_string())
         return has_registered_correctly
 
     def disconnect(self, *args, **kwargs) -> bool:

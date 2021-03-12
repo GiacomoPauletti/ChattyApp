@@ -3,6 +3,7 @@ import socket, threading
 from user.user import user_initializator
 from utilities.registers import AuthorizedUserRegister
 from handlers.access_handler import AccessHandler 
+from custom_socket.custom_socket import SocketDecorator
 
 class UnauthUserListener:
     def __init__(self, access_handler : AccessHandler):
@@ -18,7 +19,8 @@ class UnauthUserListener:
             print("[UnauthUserListener] server is now listening")
 
             while self.__is_listening:
-                client, client_address = listener.accept()    #timeout=...
+                real_client, client_address = listener.accept()    #timeout=...
+                client=SocketDecorator(real_client)
 
                 print("[UnauthUserListener] new connection")
 
@@ -39,7 +41,8 @@ class AuthUserListener:
             print("[AuthUserListener] server is now listening")
 
             while self.__is_listening:
-                client, client_address = listener.accept()
+                real_client, client_address = listener.accept()    #timeout=...
+                client=SocketDecorator(real_client)
 
                 print("[AuthUserListener] new connection")
 
