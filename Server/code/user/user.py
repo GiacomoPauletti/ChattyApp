@@ -22,8 +22,6 @@ def user_initializator(private_name, client, client_address):
 
     user_loop_thread=threading.Thread(target=user_loop, args=(server_user, remote_user_proxy))
     user_loop_thread.start()
-
-
     
 
 class User(IObserver, IObservable):     
@@ -74,17 +72,17 @@ class User(IObserver, IObservable):
             self.__new_messages.pop(0)
 
 class UserRemoteProxy:
-    def __init__(self, remote_user, remote_user_address):
-        self.__remote_user=remote_user
-        self.__remote_user_address=remote_user_address
+    def __init__(self, client, client_address):
+        self.__client=client
+        self.__client_address=client_address
 
     def send_to_remote(self, message : Message):
-        #sendwh(self.__remote_user, message)
-        ...
+        self.__client.send_with_header(message.to_string())
 
     def receive_from_remote(self):
-        """message=recvwh(self.__remote_user)
-           return message"""
+        msg=self.__client.receive_with_header()
+        message=msg.from_string()
+        return message
 
 
 def user_loop(server_user, user_remote_proxy):

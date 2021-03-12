@@ -42,3 +42,10 @@ class Chat(IObservable, IObserver):
     def get_chatid(self):
         return self.__chatid.getValue()
 
+class ChatProxy:
+    def __init__(self, chat : Chat):
+        self.__chat=chat
+
+    def receive_new_message(self, message : Message) -> None:
+        self.__chat.notify_active_users(message)
+
