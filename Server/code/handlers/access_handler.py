@@ -3,7 +3,7 @@ import threading
 
 from message.abcs import Message
 from storage.abcs import UserLogger, UserRegister
-from storage.storage import TextUserAccesserFactory
+from storage.accessing import TextUserAccesserFactory
 from user.abcs import User
 from utilities.registers import AuthorizedUserRegister
 
