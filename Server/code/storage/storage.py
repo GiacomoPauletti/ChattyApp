@@ -27,7 +27,7 @@ class UserAccesserFactory(abc.ABC):
         ...
 
 
-class UserTextLogger(UserLogger):
+class TextUserLogger(UserLogger):
     def __init__(self):
         self.__error_description=''
 
@@ -39,7 +39,7 @@ class UserTextLogger(UserLogger):
     def get_error_description(self) -> str:
         return self.__error_description
 
-class UserTextRegister(UserRegister):
+class TextUserRegister(UserRegister):
     def __init__(self):
         self.__error_description=''
 
@@ -51,7 +51,7 @@ class UserTextRegister(UserRegister):
     def get_error_description(self) -> str:
         return self.__error_description
 
-class UserTextAccesserFactory(UserAccesserFactory):
+class TextUserAccesserFactory(UserAccesserFactory):
     def  get_logger(self):
         return UserTextLogger()
 
@@ -83,7 +83,7 @@ class UserStorage(abc.ABC):
         #così da dare un messaggio alla volta
         ...
 
-class UserTextStorage(abc.ABC):
+class TextUserStorage(abc.ABC):
     def __init__(self):
         pass
 

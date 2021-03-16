@@ -3,7 +3,7 @@ import threading
 
 from message.abcs import Message
 from storage.abcs import UserLogger, UserRegister
-from storage.storage import UserTextAccesserFactory
+from storage.storage import TextUserAccesserFactory
 from user.abcs import User
 from utilities.registers import AuthorizedUserRegister
 
@@ -11,7 +11,7 @@ from utilities.registers import AuthorizedUserRegister
 #metodo "socket.recv()"
 
 def text_access_handler_factory(user_message, access_answer_message, authorized_user_register):
-    utaf=UserTextAccesserFactory()
+    utaf=TextUserAccesserFactory()
     user_logger=utaf.get_logger()
     user_register=utaf.get_register
 
