@@ -47,10 +47,6 @@ class ChatStorage(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_info(self, chatid : Chatid):
-        ...
-
-    @abc.abstractmethod
     def get_users(self, chatid : Chatid):
         ...
 
@@ -71,3 +67,64 @@ class ChatStorage(abc.ABC):
         ...
 
     
+class TextChatStorage(ChatStorage):
+    def __init__(self, chats_db_path='./database/chats'):
+        self.__path=chats_db_path.rstrip('/')
+
+    def new_chat(self, chatid : Chatid):
+        all_chats=os.walk(self.__path).__next__()[1] 
+        if chatid in all_chats:
+            return None
+
+        new_chat_path=self.__path+f'/{chatid.to_string()}'
+        os.mkdir(new_chat_path)
+
+        open(new_chat_path + f'/{messages.txt}')
+        open(new_chat_path + f'/{user_indexes.txt}') 
+        open(new_chat_path + f'/{users.txt}')
+                
+    def add_user(self, chatid : Chatid, private_name : str):
+        chat_path=self.__path + f'/{chatid.to_string()}'
+        all_chats=os.walk(self.__path).__next__()[1]
+
+        is_chat_existing=chat_path in all_chats
+        if not is_chat_existing:
+            return None
+
+        users=open(chat_path, 'r').readline().split('|')
+        
+        is_already_added=private_name in users
+        if is_already_added:
+            return None
+
+        users.append(private_name)
+        open(chat_path, 'w').write('|'.join(users))
+
+    def get_users(self, chatid : Chatid):
+        chat_path=self.__path + f'/{chatid.to_string()}'
+        all_chats=os.walk(self.__path).__next__()[1]
+
+        is_chat_existing=chat_path in all_chats
+        if not is_chat_existing:
+            return None
+
+        users=open(chat_path, 'r').readline().split('|')
+
+        for user in users:
+            yield users
+
+    def get_maximum_index(self, chatid : Chatid) -> int:
+        ...
+
+    def add_message(self, chatid : Chatid, message : Message):
+        ...
+
+    def get_message_at_index(self, chatid : Chatid, index : int) -> Message:
+        ...
+
+    def get_user_index(self, chatid : Chatid, user : User) -> int:
+        ...
+
+    def increment_user_index(self, chatid : Chatid, user : User) -> None:
+        ...
+
