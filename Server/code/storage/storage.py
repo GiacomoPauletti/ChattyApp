@@ -47,7 +47,23 @@ class ChatStorage(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_users(self, chatid : Chatid):
+    def is_chat_existing(self, chatid : Chatid) -> bool:
+        ...
+
+    @abc.abstractmethod
+    def add_user(self, chatid : Chatid, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def get_indexes(self, chatid : Chatid):
+        ...
+
+    @abc.abstractmethod
+    def get_user_index(self, chatid : Chatid, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def increment_user_index(self, chatid : Chatid, private_name : str, incrementor=1) -> None:
         ...
 
     @abc.abstractmethod 
@@ -55,15 +71,11 @@ class ChatStorage(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_message_at_index(self, chatid : Chatid, index : int) -> Message:
+    def add_message(self, chatid : Chatid, message : Message):
         ...
 
     @abc.abstractmethod
-    def get_user_index(self, chatid : Chatid, user : User) -> int:
-        ...
-
-    @abc.abstractmethod
-    def increment_user_index(self, chatid : Chatid, user : User) -> None:
+    def get_messages(self, chatid : Chatid, start : int, end : int) -> Message:
         ...
 
 def _get_num_of_lines(path):
@@ -83,14 +95,16 @@ class TextChatStorage(ChatStorage):
         It creates the database for a new chat, if it hasn't been created yet
         """
 
-        if not self.is_chat_existing(chatid):
+        if self.is_chat_existing(chatid):
             return None
+
+        print(f'[ChatStorage] the chat {chatid} has been created')
 
         new_chat_path=self.__path+f'/{str(chatid)}'
         os.mkdir(new_chat_path)
 
-        open(new_chat_path + f'/{messages.txt}')
-        open(new_chat_path + f'/{users.txt}')
+        open(new_chat_path + f'/messages.txt', 'w')
+        open(new_chat_path + f'/users.txt', 'w')
 
     def is_chat_existing(self, chatid : Chatid) -> bool:
         all_chats=os.walk(self.__path).__next__()[1]  
@@ -114,12 +128,12 @@ class TextChatStorage(ChatStorage):
 
         user_chat_path=self.__path + f'/{str(chatid)}/users.txt'
         
+        for user, index in self.get_indexes(chatid): 
+            if user == private_name:
+                print(f'[ChatStorage] the user {private_name} has already been added to {str(chatid)}')
+                return None
 
-        if is_already_added:
-            print(f'[ChatStorage] the user {private_name} has already been added to {str(chatid)}')
-            return None
-
-        open(chat_path, 'a').write(f'{private_name}:0}')
+        open(user_chat_path, 'a').write(f'{private_name}:0\n')
 
     def get_indexes(self, chatid : Chatid):
         """
@@ -133,10 +147,13 @@ class TextChatStorage(ChatStorage):
 
         user_chat_path=self.__path + f'/{str(chatid)}/users.txt'
 
-        lines=open(user_chat_path, 'r').readline().split('\n')
-        users_indexes={user:int(index) for user,index in line.split(':') for line in lines}
+        lines=open(user_chat_path, 'r').readlines()
+        if len(lines)==0:
+            return None
 
-        for user, index in users_indexes:
+        users_indexes={user:int(index) for user,index in [(line.split(':')) for line in lines]}
+        
+        for user, index in users_indexes.items():
             yield (user, index)
 
     def get_user_index(self, chatid : Chatid, private_name : str):
@@ -149,9 +166,9 @@ class TextChatStorage(ChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        for user, index in self.__get_indexes(chatid):
+        for user, index in self.get_indexes(chatid):
             if user==private_name:
-                return private_name
+                return index
         else:
             return None
 
@@ -163,8 +180,8 @@ class TextChatStorage(ChatStorage):
         It increments by 'incrementor' the index of the passed user
         """ 
 
-        user_indexes=self.get_indexes(chatid)
-        if not info:
+        user_indexes={user:index for user, index in self.get_indexes(chatid)}
+        if not user_indexes:
             return None
         
         if not private_name in user_indexes.keys():
@@ -174,8 +191,8 @@ class TextChatStorage(ChatStorage):
 
         user_chat_path=self.__path + f'/{str(chatid)}/users.txt'
         with open(user_chat_path, 'w') as f:
-            for user, index in user_indexes:
-                f.write(f'{user}:{index}')
+            for user, index in user_indexes.items():
+                f.write(f'{user}:{index}\n')
         
 
 
@@ -190,11 +207,17 @@ class TextChatStorage(ChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        chat_path=self.__path+f'/{str(chatid)}'        
-        return _get_num_of_lines(chat_path)
+        messages_chat_path=self.__path+f'/{str(chatid)}/messages.txt'        
+        return _get_num_of_lines(messages_chat_path)
 
     def add_message(self, chatid : Chatid, message : Message):
-        ...
+
+        if not self.is_chat_existing(chatid):
+            return None
+
+        messages_chat_path=self.__path + f'/{chatid}/messages.txt'
+        with open(messages_chat_path, 'a') as msg_file:
+            msg_file.write(f'{message.get_content()}\n')
 
     def get_messages(self, chatid : Chatid, start : int, end : int) -> Message:
         """
@@ -205,19 +228,20 @@ class TextChatStorage(ChatStorage):
         Both messages at index 'start' and 'end' are yielded
         """ 
 
+        #DA SISTEMARE: bisogna salvare anche il destinatario del messaggio
+        
         if not self.is_chat_existing(chatid):
             return None
         
-        if end < start:
+        if end < start or start < 0:
             return None
         
         end = end if end < self.get_maximum_index(chatid) else self.get_maximum_index(chatid)
 
-        chat_path=self.__path+f'/{str(chatid)}'
-        
-        with open(chat_path, 'r') as f:
+        messages_chat_path=self.__path+f'/{str(chatid)}/messages.txt'
+        with open(messages_chat_path, 'r') as f:
             for index, message in enumerate(f):
-                if start < index < end:
+                if start <= index <= end:
                     yield message
 
 

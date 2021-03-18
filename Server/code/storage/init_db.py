@@ -1,6 +1,6 @@
 import os
 
-def text_init_db(db_path='.'):
+def text_init_db(db_path='database'):
     db_path=db_path.rstrip('/')
 
     os.mkdir(db_path) 
