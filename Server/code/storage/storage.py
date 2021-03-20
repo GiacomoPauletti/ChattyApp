@@ -11,6 +11,10 @@ class UserStorage(abc.ABC):
         ...
 
     @abc.abstractmethod
+    def is_user_existing(self, private_name : str):
+        ...
+        
+    @abc.abstractmethod
     def get_chats(self, private_name : str) -> dict:
         ...
 
@@ -18,27 +22,50 @@ class UserStorage(abc.ABC):
     def get_notifications(self, private_name : str) -> str:
         ...
 
-    @abc.abstractmethod
-    def get_unread_messages(self, private_name : str, chat=None) -> Message:
-        #si potrebbe fare che ritorna un iterator o che funziona da iterator
-        #così da dare un messaggio alla volta
-        ...
 
 class TextUserStorage(abc.ABC):
-    def __init__(self):
-        pass
+    def __init__(self, notif_message_class, chat_message_class, default_path='./database/users'):
+        self.__default_path=default_path
+        self.__NotificationMessage=notif_message_class
+        self.__ChatMessage=chat_message_class
 
     def new_user(self, private_name : str):
-        pass
 
-    def get_chats(self, private_name : str) -> dict:
-        pass
+        if self.is_user_existing(private_name):
+            return None
+
+        new_user_path=self.__default_path + f'/{private_name}'
+        os.mkdir(new_user_path)
+
+        open(new_user_path + f'/credentials.txt')
+        open(new_user_path + f'/unread_chats.txt') #OPPURE LAST_CHATS.TXT
+        open(new_user_path + f'/notifications.txt')
+
+    def is_user_existing(self, private_name : str):
+        all_users=os.walk(self.__default_path).__next__()[1]
+
+        is_user_existing=private_name in all_users
+
+        if not is_user_existing:
+            print(f'[UserStorage] the user {private_name} is not existing')
+            return False
+
+        return True
+
+    def get_unread_chats(self, private_name : str, start=0, end=None):
+        
+        if not self.is_user_existing(private_name)
+            return None
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'r') as f:
+            for index, chat in enumerate(f):
+                if start <= index and (end and index <  end):
+                    yield chat
 
     def get_notifications(self, private_name : str) -> str:
         ...
 
-    def get_unread_messages(self, private_name : str, chat: Chatid) -> Message:
-        pass
 
 
 class ChatStorage(abc.ABC):
@@ -85,9 +112,9 @@ def _get_num_of_lines(path):
     return i+1
     
 class TextChatStorage(ChatStorage):
-    def __init__(self, chats_db_path='./database/chats', chat_message_class):
-        self.__path=chats_db_path.rstrip('/')
-        self.__chat_message=chat_message_class
+    def __init__(self, chat_message_class, default_path='./database/chats'):
+        self.__default_path=default_path.rstrip('/')
+        self.__ChatMessage=chat_message_class
 
     def new_chat(self, chatid : Chatid):
         """
@@ -101,14 +128,14 @@ class TextChatStorage(ChatStorage):
 
         print(f'[ChatStorage] the chat {chatid} has been created')
 
-        new_chat_path=self.__path+f'/{str(chatid)}'
+        new_chat_path=self.__default_path+f'/{str(chatid)}'
         os.mkdir(new_chat_path)
 
         open(new_chat_path + f'/messages.txt', 'w')
         open(new_chat_path + f'/users.txt', 'w')
 
     def is_chat_existing(self, chatid : Chatid) -> bool:
-        all_chats=os.walk(self.__path).__next__()[1]  
+        all_chats=os.walk(self.__default_path).__next__()[1]  
 
         is_chat_existing=str(chatid) in all_chats 
         if not is_chat_existing: 
@@ -127,7 +154,7 @@ class TextChatStorage(ChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        user_chat_path=self.__path + f'/{str(chatid)}/users.txt'
+        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
         
         for user, index in self.get_indexes(chatid): 
             if user == private_name:
@@ -146,7 +173,7 @@ class TextChatStorage(ChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        user_chat_path=self.__path + f'/{str(chatid)}/users.txt'
+        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
 
         lines=open(user_chat_path, 'r').readlines()
         if len(lines)==0:
@@ -190,7 +217,7 @@ class TextChatStorage(ChatStorage):
 
         user_indexes[private_name] += incrementor
 
-        user_chat_path=self.__path + f'/{str(chatid)}/users.txt'
+        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
         with open(user_chat_path, 'w') as f:
             for user, index in user_indexes.items():
                 f.write(f'{user}:{index}\n')
@@ -208,7 +235,7 @@ class TextChatStorage(ChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        messages_chat_path=self.__path+f'/{str(chatid)}/messages.txt'        
+        messages_chat_path=self.__default_path+f'/{str(chatid)}/messages.txt'        
         return _get_num_of_lines(messages_chat_path)
 
     def add_message(self, chatid : Chatid, message : Message):
@@ -216,7 +243,7 @@ class TextChatStorage(ChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        messages_chat_path=self.__path + f'/{chatid}/messages.txt'
+        messages_chat_path=self.__default_path + f'/{chatid}/messages.txt'
         with open(messages_chat_path, 'a') as msg_file:
             msg_file.write(f'{str(message)}\n')
 
@@ -229,8 +256,6 @@ class TextChatStorage(ChatStorage):
         Both messages at index 'start' and 'end' are yielded
         """ 
 
-        #DA SISTEMARE: bisogna salvare anche il destinatario del messaggio
-        
         if not self.is_chat_existing(chatid):
             return None
         
@@ -239,11 +264,12 @@ class TextChatStorage(ChatStorage):
         
         end = end if end < self.get_maximum_index(chatid) else self.get_maximum_index(chatid)
 
-        messages_chat_path=self.__path+f'/{str(chatid)}/messages.txt'
+        messages_chat_path=self.__default_path+f'/{str(chatid)}/messages.txt'
         with open(messages_chat_path, 'r') as f:
             for index, message in enumerate(f):
                 if start <= index <= end:
-                    final_message=self.__chat_message().from_string(message)
+                    message.rstrip('\n')
+                    final_message=self.__ChatMessage.from_string(message)
                     yield final_message
 
 
