@@ -15,11 +15,23 @@ class UserStorage(abc.ABC):
         ...
         
     @abc.abstractmethod
-    def get_chats(self, private_name : str) -> dict:
+    def add_unread_chat(self, private_name : str, chat : Chatid):
         ...
 
     @abc.abstractmethod
-    def get_notifications(self, private_name : str) -> str:
+    def get_unread_chats(self, private_name : str, end=None):
+        ...
+
+    @abc.abstractmethod
+    def remove_unread_chats(self, private_name : str, end=1):
+        ...
+
+    @abc.abstractmethod
+    def get_notifications(self, private_name : str, end=None):
+        ...
+
+    @abc.abstractmethod
+    def remove_notification(self, private_name, end=1):
         ...
 
 
@@ -52,21 +64,81 @@ class TextUserStorage(abc.ABC):
 
         return True
 
-    def get_unread_chats(self, private_name : str, start=0, end=None):
+    def add_unread_chat(self, private_name : str, chat : Chatid):
         
-        if not self.is_user_existing(private_name)
+        if not self.is_user_existing(private_name):
+            return None
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'a') as f:
+            f.write(f'{str(chat)}\n')
+
+    def get_unread_chats(self, private_name : str, end=None):
+        
+        if not self.is_user_existing(private_name):
             return None
 
         unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
         with open(unread_chat_path, 'r') as f:
             for index, chat in enumerate(f):
-                if start <= index and (end and index <  end):
-                    yield chat
+                if end==None or index < end:
+                    chat.rstrip('\n')
+                    
+                    final_chat=self.__ChatMessage.from_string(chat)
+                    yield final_chat
 
-    def get_notifications(self, private_name : str) -> str:
-        ...
+    def remove_unread_chats(self, private_name : str, end=1):
+        
+        if not self.is_user_existing(private_name):
+            return None
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'r') as f:
+            unread_chats=f.readlines()
+
+        with open(unread_chat_path, 'w') as f:
+            for index,chat in enumerate(unread_chats):
+                if index >= end:
+                    f.write(chat)
 
 
+    def add_notification(self, private_name : str, notification):
+
+        if not self.is_user_existing(private_name):
+            return None
+
+        notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
+        with open(notifications_path, 'a') as f:
+            f.write(f'{str(notification)}\n')
+
+    def get_notifications(self, private_name : str, end=None) -> str: #FARE: REMOVE E POP PER UNREAD_CHATS E NOTIFICATIONS
+        
+        if not self.is_user_existing(private_name):
+            return None
+
+        notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
+
+        with open(notifications_path, 'r') as f:
+            for index, notif in enumerate(f):
+                if end==None or index < end:
+                    notif.rstrip('\n')
+                    
+                    final_notif=self.__NotificationMessage.from_string(notif)
+                    yield final_notif
+
+    def remove_notifications(self, private_name : str, end=1):
+        
+        if not self.is_user_existing(private_name):
+            return None
+
+        notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
+        with open(notifications_path, 'r') as f:
+            notifications=f.readlines()
+
+        with open(notifications_path, 'w') as f:
+            for index,notif in enumerate(notifications):
+                if index >= end:
+                    f.write(notif)
 
 class ChatStorage(abc.ABC):
     @abc.abstractmethod
