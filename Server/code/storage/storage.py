@@ -36,22 +36,23 @@ class UserStorage(abc.ABC):
 
 
 class TextUserStorage(abc.ABC):
-    def __init__(self, notif_message_class, chat_message_class, default_path='./database/users'):
+    def __init__(self, notif_message_class, default_path='./database/users'):
         self.__default_path=default_path
         self.__NotificationMessage=notif_message_class
-        self.__ChatMessage=chat_message_class
 
     def new_user(self, private_name : str):
 
         if self.is_user_existing(private_name):
             return None
 
+        print(f'[UserStorage] the user {private_name} has been created')
+
         new_user_path=self.__default_path + f'/{private_name}'
         os.mkdir(new_user_path)
 
-        open(new_user_path + f'/credentials.txt')
-        open(new_user_path + f'/unread_chats.txt') #OPPURE LAST_CHATS.TXT
-        open(new_user_path + f'/notifications.txt')
+        open(new_user_path + f'/credentials.txt', 'w')
+        open(new_user_path + f'/unread_chats.txt', 'w') #OPPURE LAST_CHATS.TXT
+        open(new_user_path + f'/notifications.txt', 'w')
 
     def is_user_existing(self, private_name : str):
         all_users=os.walk(self.__default_path).__next__()[1]
@@ -82,9 +83,9 @@ class TextUserStorage(abc.ABC):
         with open(unread_chat_path, 'r') as f:
             for index, chat in enumerate(f):
                 if end==None or index < end:
-                    chat.rstrip('\n')
+                    chat=chat.rstrip('\n')
                     
-                    final_chat=self.__ChatMessage.from_string(chat)
+                    final_chat=Chatid.from_string(chat)
                     yield final_chat
 
     def remove_unread_chats(self, private_name : str, end=1):
@@ -121,7 +122,7 @@ class TextUserStorage(abc.ABC):
         with open(notifications_path, 'r') as f:
             for index, notif in enumerate(f):
                 if end==None or index < end:
-                    notif.rstrip('\n')
+                    notif=notif.rstrip('\n')
                     
                     final_notif=self.__NotificationMessage.from_string(notif)
                     yield final_notif
