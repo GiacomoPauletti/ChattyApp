@@ -32,7 +32,7 @@ class ChatMessage:
         return self.__content
 
     def __str__(self):
-        return f'{self.__sender_private_name}|{self.__receiver_chat_id}|{self.__content}'
+        return f'{self.__sender_private_name}|{self.__receiver_chat_id.get_value()}|{self.__content}'
 
 class NotificationMessage:  #per ora è tale e quale al ChatMessage, in futuro va cambiato
 
