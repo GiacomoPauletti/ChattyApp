@@ -10,3 +10,5 @@ class Chatid:
     def get_value(self): 
         return self.__value
 
+    def __str__(self):
+        return str(self.__value)
