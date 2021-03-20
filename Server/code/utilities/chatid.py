@@ -7,6 +7,6 @@ class Chatid:
     def __init__(self, value : str): 
         self.__value=value 
  
-    def getValue(self): 
+    def get_value(self): 
         return self.__value
 

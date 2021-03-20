@@ -85,8 +85,9 @@ def _get_num_of_lines(path):
     return i+1
     
 class TextChatStorage(ChatStorage):
-    def __init__(self, chats_db_path='./database/chats'):
+    def __init__(self, chats_db_path='./database/chats', chat_message_class):
         self.__path=chats_db_path.rstrip('/')
+        self.__chat_message=chat_message_class
 
     def new_chat(self, chatid : Chatid):
         """
@@ -217,7 +218,7 @@ class TextChatStorage(ChatStorage):
 
         messages_chat_path=self.__path + f'/{chatid}/messages.txt'
         with open(messages_chat_path, 'a') as msg_file:
-            msg_file.write(f'{message.get_content()}\n')
+            msg_file.write(f'{str(message)}\n')
 
     def get_messages(self, chatid : Chatid, start : int, end : int) -> Message:
         """
@@ -242,7 +243,8 @@ class TextChatStorage(ChatStorage):
         with open(messages_chat_path, 'r') as f:
             for index, message in enumerate(f):
                 if start <= index <= end:
-                    yield message
+                    final_message=self.__chat_message().from_string(message)
+                    yield final_message
 
 
 
