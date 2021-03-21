@@ -24,3 +24,19 @@ class UserAccesserFactory(abc.ABC):
     @abc.abstractmethod
     def get_register(self):
         ...
+
+class CredentialStorage(abc.ABC):
+    @abc.abstractmethod
+    def is_user_existing(self, private_name : str) -> bool:
+        ...
+
+    @abc.abstractmethod
+    def set_credential(self, private_name : str, key : str, value) -> bool:
+        ...
+
+    @abc.abstractmethod
+    def get_credential(self, private_name : str, key : str) -> bool:
+        ...
+
+    #no "remove_credential" perchè non ha senso
+
