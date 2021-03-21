@@ -112,7 +112,7 @@ class TextUserStorage(abc.ABC):
         with open(notifications_path, 'a') as f:
             f.write(f'{str(notification)}\n')
 
-    def get_notifications(self, private_name : str, end=None) -> str: #FARE: REMOVE E POP PER UNREAD_CHATS E NOTIFICATIONS
+    def get_notifications(self, private_name : str, end=None) -> str:
         
         if not self.is_user_existing(private_name):
             return None
