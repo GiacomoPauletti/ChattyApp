@@ -31,28 +31,34 @@ class TextGeneralUserStorage(GeneralUserStorage):
         new_user_path=self.__default_path + f'/{private_name}'
         os.mkdir(new_user_path)
 
-        self.__notification_storage.new_user()
-        self.__unread_chat_storage.new_user()
-        self.__credential_storage.new_user()
+        self.__notification_storage.new_user(private_name)
+        self.__unread_chat_storage.new_user(private_name)
+        self.__credential_storage.new_user(private_name, credentials)
         
+    def is_user_existing(self, private_name : str):
+        all_users=os.walk(self.__default_path).__next__()[1]
+
+        is_user_existing=private_name in all_users
+
+        if not is_user_existing:
+            print(f'[GeneralUserStorage] the user {private_name} is not existing')
+            return False
+
+        return True
 
 class CredentialStorage(abc.ABC):
     @abc.abstractmethod
     def new_user(self, private_name : str, credentials : dict):
         ...
-    @abc.abstractmethod
-    def is_user_existing(self, private_name : str) -> bool:
-        ...
     
     @abc.abstractmethod
-    def set_credential(self, private_name : str, key : str, value) -> bool:
+    def set(self, private_name : str, key : str, value) -> bool:
         ...
         
     @abc.abstractmethod
-    def get_credential(self, private_name : str, key : str) -> bool:
+    def get(self, private_name : str, key : str) -> bool:
         ...
 
-    #no "remove_credential" perchè non ha senso
     
 class TextCredentialStorage(CredentialStorage):
     def __init__(self, credential_types: dict = ('private_name', 'email', 'password'), default_path='./database/users'):
@@ -67,18 +73,8 @@ class TextCredentialStorage(CredentialStorage):
                 credential_value=credentials[credential_type]
                 f.write(f'{credential_type}:{credential_value}\n')
 
-    def is_user_existing(self, private_name : str):
-        all_users=os.walk(self.__default_path).__next__()[1]
 
-        is_user_existing=private_name in all_users
-
-        if not is_user_existing:
-            print(f'[UserStorage] the user {private_name} is not existing')
-            return False
-
-        return True
-
-    def set_credential(self, private_name : str, key : str, value) -> bool:
+    def set(self, private_name : str, key : str, value) -> bool:
 
         if not self.is_user_existing(private_name):
             return False
@@ -101,7 +97,7 @@ class TextCredentialStorage(CredentialStorage):
 
         return True            
 
-    def get_credential(self, private_name : str, key) -> bool:
+    def get(self, private_name : str, key) -> bool:
 
         if not self.is_user_existing(private_name):
             return False
@@ -110,6 +106,7 @@ class TextCredentialStorage(CredentialStorage):
             if credential_type == key:
                 return credential_value
 
+        print(f'[CredentialStorage] the credential type {key} is not valid')
         return None
 
     def __get_all_credentials(self, private_name : str):
@@ -148,8 +145,6 @@ class TextNotificationStorage(NotificationStorage):
         
     def add(self, private_name : str, notification):
 
-        if not self.is_user_existing(private_name):
-            return None
 
         notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
         with open(notifications_path, 'a') as f:
@@ -157,9 +152,6 @@ class TextNotificationStorage(NotificationStorage):
 
     def get(self, private_name : str, end=None) -> str:
         
-        if not self.is_user_existing(private_name):
-            return None
-
         notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
 
         with open(notifications_path, 'r') as f:
@@ -172,9 +164,6 @@ class TextNotificationStorage(NotificationStorage):
 
     def remove(self, private_name : str, end=1):
         
-        if not self.is_user_existing(private_name):
-            return None
-
         notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
         with open(notifications_path, 'r') as f:
             notifications=f.readlines()
@@ -250,7 +239,7 @@ class UserStorage:
         self.__general_user_storage.new_user(private_name, credentials) 
         
     def is_user_existing(self, private_name : str):
-        self.__general_user_storage.is_user_existing(private_name)
+        return self.__general_user_storage.is_user_existing(private_name)
         
     def add_unread_chat(self, private_name : str, chat : Chatid):
         if not self.is_user_existing(private_name):
@@ -262,7 +251,7 @@ class UserStorage:
         if not self.is_user_existing(private_name):
             return None
 
-        self.__unread_chat_storage.get(private_name, end)
+        yield from self.__unread_chat_storage.get(private_name, end)
 
     def remove_unread_chats(self, private_name : str, end=1):
         if not self.is_user_existing(private_name):
@@ -274,13 +263,13 @@ class UserStorage:
         if not self.is_user_existing(private_name):
             return None
 
-        self.__notification_storage.get(private_name, notification)
+        self.__notification_storage.add(private_name, notification)
 
     def get_notifications(self, private_name : str, end=None):
         if not self.is_user_existing(private_name):
             return None
 
-        self.__notification_storage.get(private_name, end)
+        yield from self.__notification_storage.get(private_name, end)
 
     def remove_notifications(self, private_name, end=1):
         if not self.is_user_existing(private_name):
@@ -495,7 +484,6 @@ class TextChatStorage(ChatStorage):
                     yield final_message
 
 
-
 """
 class UserStorage(abc.ABC):
     @abc.abstractmethod
@@ -526,7 +514,6 @@ class UserStorage(abc.ABC):
     def remove_notifications(self, private_name, end=1):
         ...
 """
-
 
 """
 class TextUserStorage(UserStorage):
