@@ -4,7 +4,42 @@ from utilities.chatid import Chatid
 from user.abcs import User
 import os
 
+class GeneralUserStorage(abc.ABC):
+    @abc.abstractmethod
+    def new_user(self, private_name : str, credentials : dict):
+        ...
+
+    @abc.abstractmethod
+    def is_user_existing(self, private_name : str):
+        ...
+
+class TextGeneralUserStorage(GeneralUserStorage):
+    def __init__(self, notification_storage, unread_chat_storage, credential_storage, default_path='./database/users'):
+        self.__notification_storage=notification_storage
+        self.__unread_chat_storage=unread_chat_storage
+        self.__credential_storage=credential_storage
+
+        self.__default_path=default_path.rstrip('/')
+
+    def new_user(self, private_name : str, credentials : dict):
+
+        if self.is_user_existing(private_name):
+            return None
+
+        print(f'[UserStorage] the user {private_name} has been created')
+
+        new_user_path=self.__default_path + f'/{private_name}'
+        os.mkdir(new_user_path)
+
+        self.__notification_storage.new_user()
+        self.__unread_chat_storage.new_user()
+        self.__credential_storage.new_user()
+        
+
 class CredentialStorage(abc.ABC):
+    @abc.abstractmethod
+    def new_user(self, private_name : str, credentials : dict):
+        ...
     @abc.abstractmethod
     def is_user_existing(self, private_name : str) -> bool:
         ...
@@ -22,7 +57,7 @@ class CredentialStorage(abc.ABC):
 class TextCredentialStorage(CredentialStorage):
     def __init__(self, credential_types: dict = ('private_name', 'email', 'password'), default_path='./database/users'):
         self.__credential_types=credential_types
-        self.__default_path=default_path
+        self.__default_path=default_path.rstrip('/')
 
     def new_user(self, private_name : str, credentials : dict):
         credentials_path=self.__default_path + f'/{private_name}/credentials.txt'
@@ -86,105 +121,32 @@ class TextCredentialStorage(CredentialStorage):
                 credential_type, credential_value = line.split(':')
                 yield (credential_type, credential_value)
 
-class UserStorage(abc.ABC):
+class NotificationStorage(abc.ABC):
     @abc.abstractmethod
     def new_user(self, private_name : str):
         ...
 
     @abc.abstractmethod
-    def is_user_existing(self, private_name : str):
-        ...
-        
-    @abc.abstractmethod
-    def add_unread_chat(self, private_name : str, chat : Chatid):
+    def add(self, private_name : str, notification):
         ...
 
     @abc.abstractmethod
-    def get_unread_chats(self, private_name : str, end=None):
+    def get(self, private_name : str, end=1):
         ...
 
     @abc.abstractmethod
-    def remove_unread_chats(self, private_name : str, end=1):
+    def remove(self, private_name : str, end=1):
         ...
 
-    @abc.abstractmethod
-    def get_notifications(self, private_name : str, end=None):
-        ...
-
-    @abc.abstractmethod
-    def remove_notification(self, private_name, end=1):
-        ...
-
-
-class TextUserStorage(abc.ABC):
+class TextNotificationStorage(NotificationStorage):
     def __init__(self, notif_message_class, default_path='./database/users'):
-        self.__default_path=default_path
         self.__NotificationMessage=notif_message_class
+        self.__default_path=default_path.rstrip('/')
 
     def new_user(self, private_name : str):
-
-        if self.is_user_existing(private_name):
-            return None
-
-        print(f'[UserStorage] the user {private_name} has been created')
-
-        new_user_path=self.__default_path + f'/{private_name}'
-        os.mkdir(new_user_path)
-
-        open(new_user_path + f'/credentials.txt', 'w')
-        open(new_user_path + f'/unread_chats.txt', 'w') #OPPURE LAST_CHATS.TXT
-        open(new_user_path + f'/notifications.txt', 'w')
-
-    def is_user_existing(self, private_name : str):
-        all_users=os.walk(self.__default_path).__next__()[1]
-
-        is_user_existing=private_name in all_users
-
-        if not is_user_existing:
-            print(f'[UserStorage] the user {private_name} is not existing')
-            return False
-
-        return True
-
-    def add_unread_chat(self, private_name : str, chat : Chatid):
+        open(f'{self.__default_path}/{private_name}/notifications.txt', 'w')
         
-        if not self.is_user_existing(private_name):
-            return None
-
-        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
-        with open(unread_chat_path, 'a') as f:
-            f.write(f'{str(chat)}\n')
-
-    def get_unread_chats(self, private_name : str, end=None):
-        
-        if not self.is_user_existing(private_name):
-            return None
-
-        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
-        with open(unread_chat_path, 'r') as f:
-            for index, chat in enumerate(f):
-                if end==None or index < end:
-                    chat=chat.rstrip('\n')
-                    
-                    final_chat=Chatid.from_string(chat)
-                    yield final_chat
-
-    def remove_unread_chats(self, private_name : str, end=1):
-        
-        if not self.is_user_existing(private_name):
-            return None
-
-        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
-        with open(unread_chat_path, 'r') as f:
-            unread_chats=f.readlines()
-
-        with open(unread_chat_path, 'w') as f:
-            for index,chat in enumerate(unread_chats):
-                if index >= end:
-                    f.write(chat)
-
-
-    def add_notification(self, private_name : str, notification):
+    def add(self, private_name : str, notification):
 
         if not self.is_user_existing(private_name):
             return None
@@ -193,7 +155,7 @@ class TextUserStorage(abc.ABC):
         with open(notifications_path, 'a') as f:
             f.write(f'{str(notification)}\n')
 
-    def get_notifications(self, private_name : str, end=None) -> str:
+    def get(self, private_name : str, end=None) -> str:
         
         if not self.is_user_existing(private_name):
             return None
@@ -208,7 +170,7 @@ class TextUserStorage(abc.ABC):
                     final_notif=self.__NotificationMessage.from_string(notif)
                     yield final_notif
 
-    def remove_notifications(self, private_name : str, end=1):
+    def remove(self, private_name : str, end=1):
         
         if not self.is_user_existing(private_name):
             return None
@@ -221,6 +183,112 @@ class TextUserStorage(abc.ABC):
             for index,notif in enumerate(notifications):
                 if index >= end:
                     f.write(notif)
+
+
+class UnreadChatStorage(abc.ABC):
+    @abc.abstractmethod
+    def new_user(self, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def add(self, private_name : str, chat : Chatid):
+        ...
+
+    @abc.abstractmethod
+    def get(self, private_name : str, end=1):
+        ...
+
+    @abc.abstractmethod
+    def remove(self, private_name : str, end=1):
+        ...
+
+class TextUnreadChatStorage(UnreadChatStorage):
+    def __init__(self, default_path='./database/users'):
+        self.__default_path=default_path.rstrip('/')
+
+    def new_user(self, private_name : str):
+        new_unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        open(new_unread_chat_path, 'w')
+
+    def add(self, private_name : str, chat : Chatid):
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'a') as f:
+            f.write(f'{str(chat)}\n')
+
+    def get(self, private_name : str, end=None):
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'r') as f:
+            for index, chat in enumerate(f):
+                if end==None or index < end:
+                    chat=chat.rstrip('\n')
+                    
+                    final_chat=Chatid.from_string(chat)
+                    yield final_chat
+
+    def remove(self, private_name : str, end=1):
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'r') as f:
+            unread_chats=f.readlines()
+
+        with open(unread_chat_path, 'w') as f:
+            for index,chat in enumerate(unread_chats):
+                if index >= end:
+                    f.write(chat)
+
+
+class UserStorage:
+    def __init__(self, notification_storage, unread_chat_storage, general_user_storage, default_path='./database/users'):
+        self.__notification_storage=notification_storage
+        self.__unread_chat_storage=unread_chat_storage
+        self.__general_user_storage=general_user_storage
+
+        self.__default_path=default_path.rstrip('/')
+
+    def new_user(self, private_name : str, credentials):
+        self.__general_user_storage.new_user(private_name, credentials) 
+        
+    def is_user_existing(self, private_name : str):
+        self.__general_user_storage.is_user_existing(private_name)
+        
+    def add_unread_chat(self, private_name : str, chat : Chatid):
+        if not self.is_user_existing(private_name):
+            return None
+
+        self.__unread_chat_storage.add(private_name, chat)
+
+    def get_unread_chats(self, private_name : str, end=None):
+        if not self.is_user_existing(private_name):
+            return None
+
+        self.__unread_chat_storage.get(private_name, end)
+
+    def remove_unread_chats(self, private_name : str, end=1):
+        if not self.is_user_existing(private_name):
+            return None
+
+        self.__unread_chat_storage.remove(private_name, end)
+
+    def add_notification(self, private_name : str, notification):
+        if not self.is_user_existing(private_name):
+            return None
+
+        self.__notification_storage.get(private_name, notification)
+
+    def get_notifications(self, private_name : str, end=None):
+        if not self.is_user_existing(private_name):
+            return None
+
+        self.__notification_storage.get(private_name, end)
+
+    def remove_notifications(self, private_name, end=1):
+        if not self.is_user_existing(private_name):
+            return None
+
+        self.__notification_storage.remove(private_name, end)
+
+
 
 class ChatStorage(abc.ABC):
     @abc.abstractmethod
@@ -428,3 +496,103 @@ class TextChatStorage(ChatStorage):
 
 
 
+"""
+class UserStorage(abc.ABC):
+    @abc.abstractmethod
+    def new_user(self, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def is_user_existing(self, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def add_unread_chat(self, private_name : str, chat : Chatid):
+        ...
+
+    @abc.abstractmethod
+    def get_unread_chats(self, private_name : str, end=None):
+        ...
+
+    @abc.abstractmethod
+    def remove_unread_chats(self, private_name : str, end=1):
+        ...
+
+    @abc.abstractmethod
+    def get_notifications(self, private_name : str, end=None):
+        ...
+
+    @abc.abstractmethod
+    def remove_notifications(self, private_name, end=1):
+        ...
+"""
+
+
+"""
+class TextUserStorage(UserStorage):
+    def __init__(self, notif_message_class, default_path='./database/users'):
+        self.__default_path=default_path.rstrip('/')
+        self.__NotificationMessage=notif_message_class
+
+    def new_user(self, private_name : str):
+
+        if self.is_user_existing(private_name):
+            return None
+
+        print(f'[UserStorage] the user {private_name} has been created')
+
+        new_user_path=self.__default_path + f'/{private_name}'
+        os.mkdir(new_user_path)
+
+        open(new_user_path + f'/credentials.txt', 'w')
+        open(new_user_path + f'/unread_chats.txt', 'w') #OPPURE LAST_CHATS.TXT
+        open(new_user_path + f'/notifications.txt', 'w')
+
+    def is_user_existing(self, private_name : str):
+        all_users=os.walk(self.__default_path).__next__()[1]
+
+        is_user_existing=private_name in all_users
+
+        if not is_user_existing:
+            print(f'[UserStorage] the user {private_name} is not existing')
+            return False
+
+        return True
+
+    def add_unread_chat(self, private_name : str, chat : Chatid):
+        
+        if not self.is_user_existing(private_name):
+            return None
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'a') as f:
+            f.write(f'{str(chat)}\n')
+
+    def get_unread_chats(self, private_name : str, end=None):
+        
+        if not self.is_user_existing(private_name):
+            return None
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'r') as f:
+            for index, chat in enumerate(f):
+                if end==None or index < end:
+                    chat=chat.rstrip('\n')
+                    
+                    final_chat=Chatid.from_string(chat)
+                    yield final_chat
+
+    def remove_unread_chats(self, private_name : str, end=1):
+        
+        if not self.is_user_existing(private_name):
+            return None
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        with open(unread_chat_path, 'r') as f:
+            unread_chats=f.readlines()
+
+        with open(unread_chat_path, 'w') as f:
+            for index,chat in enumerate(unread_chats):
+                if index >= end:
+                    f.write(chat)
+"""
