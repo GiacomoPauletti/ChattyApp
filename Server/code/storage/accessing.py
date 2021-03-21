@@ -1,7 +1,8 @@
 import abc
 from message.abcs import Message
+import os
 
-def CredentialStorage(abc.ABC):
+class CredentialStorage(abc.ABC):
     @abc.abstractmethod
     def is_user_existing(self, private_name : str) -> bool:
         ...
@@ -16,7 +17,7 @@ def CredentialStorage(abc.ABC):
 
     #no "remove_credential" perchè non ha senso
 
-def TextCredentialStorage(CredentialStorage):
+class TextCredentialStorage(CredentialStorage):
     def __init__(self, credential_types: dict = ('private_name', 'email', 'password'), default_path='./database/users'):
         self.__credential_types=credential_types
         self.__default_path=default_path
@@ -58,7 +59,7 @@ def TextCredentialStorage(CredentialStorage):
 
         credentials_path=self.__default_path + f'/{private_name}/credentials.txt'
         with open(credentials_path, 'w') as f:
-            for credential_type, credential_value in credentials:
+            for credential_type, credential_value in credentials.items():
                 f.write(f'{credential_type}:{credential_value}\n')
 
         return True
