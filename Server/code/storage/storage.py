@@ -280,7 +280,7 @@ class UserStorage:
 
 
 class ChatCreator:
-    def __init__(self, message_storage : MessageStorage, user_chat_storage : UserChatStorage, default_path='./database/chats'):
+    def __init__(self, message_storage, user_chat_storage, default_path='./database/chats'):
         self.__message_storage=message_storage
         self.__user_chat_storage=user_chat_storage
         
@@ -325,7 +325,6 @@ class UserChatStorage(abc.ABC):
     def add_user(self, chatid : Chatid, private_name : str):
         ...
 
-    @abc.abstractmethod
     def __get_indexes(self, chatid : Chatid):
         ...
 
@@ -337,7 +336,6 @@ class UserChatStorage(abc.ABC):
     def increment_user_index(self, chatid : Chatid, private_name : str, incrementor=1) -> None:
         ...
 
-    @abc.abstractmethod 
     def get_maximum_index(self, chatid : Chatid) -> int:
         ...
 
@@ -347,13 +345,8 @@ class TextUserChatStorage(UserChatStorage):
 
     def _new_chat(self, chatid : Chatid):
         
-        if self.is_chat_existing(chatid):
-            return None
-
-        new_chat_path=self.__default_path+f'/{str(chatid)}'
-        os.mkdir(new_chat_path)
-
-        open(new_chat_path + f'/users.txt', 'w')
+        new_users_path=self.__default_path+f'/{str(chatid)}/users.txt'
+        open(new_users_path, 'w')
 
     def is_chat_existing(self, chatid : Chatid) -> bool:
         all_chats=os.walk(self.__default_path).__next__()[1]  
@@ -476,10 +469,9 @@ class TextMessageStorage(MessageStorage):
         self.__default_path=default_path
 
     def _new_chat(self, chatid: Chatid):
-        new_chat_path=self.__default_path+f'/{str(chatid)}'
-        os.mkdir(new_chat_path)
 
-        open(new_chat_path + f'/messages.txt', 'w')
+        new_message_path=self.__default_path+f'/{str(chatid)}/messages.txt'
+        open(new_message_path, 'w')
 
     def is_chat_existing(self, chatid : Chatid) -> bool:
         all_chats=os.walk(self.__default_path).__next__()[1]  
