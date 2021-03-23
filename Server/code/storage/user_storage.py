@@ -1,9 +1,27 @@
 import abc
 from message.abcs import Message
+import message.message as msg
 from utilities.chatid import Chatid
 from user.abcs import User
 import os
 
+class TextUserStorageFactory:
+    def __init__(self, default_path='./database/users'):
+        self.__notification_storage=TextNotificationStorage(msg.NotificationMessage, default_path)
+        self.__unread_chat_storage=TextUnreadChatStorage(default_path)
+        self.__credential_storage=TextCredentialStorage(default_path)
+
+    def get_user_creator(self):
+        return TextUserCreator(self.__notification_storage, self.__unread_chat_storage, self.__credential_storage, default_path)
+
+    def get_notification_storage(self):
+        return self.__notification_storage
+
+    def get_unread_chat_storage(self):
+        return self.__unread_chat_storage
+
+    def get_credential_storage(self):
+        return self.__credential_storage
 
 class UserCreator:
     @abc.abstractmethod
