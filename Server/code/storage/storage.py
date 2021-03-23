@@ -278,6 +278,43 @@ class UserStorage:
         self.__notification_storage.remove(private_name, end)
 
 
+
+class ChatCreator:
+    def __init__(self, message_storage : MessageStorage, user_chat_storage : UserChatStorage, default_path='./database/chats'):
+        self.__message_storage=message_storage
+        self.__user_chat_storage=user_chat_storage
+        
+        self.__default_path=default_path
+
+    def new_chat(self, chatid : Chatid):
+        if self.is_chat_existing(chatid):
+            return None
+
+        print(f'[ChatStorage] the chat {chatid} has been created')
+
+        new_chat_path=self.__default_path+f'/{str(chatid)}'
+        os.mkdir(new_chat_path)
+
+        self.__message_storage._new_chat(chatid)
+        self.__user_chat_storage._new_chat(chatid)
+        
+    def is_chat_existing(self, chatid : Chatid) -> bool:
+        all_chats=os.walk(self.__default_path).__next__()[1]  
+
+        is_chat_existing=str(chatid) in all_chats 
+        if not is_chat_existing: 
+            print(f'[ChatStorage] the chat {str(chatid)} is not existing') 
+            return False 
+
+        return True 
+
+
+def _get_num_of_lines(path):
+    with open(path, 'r') as f:
+        for i, l in enumerate(f):
+            pass
+    return i+1
+
 class UserChatStorage(abc.ABC):
 
     @abc.abstractmethod
@@ -289,7 +326,7 @@ class UserChatStorage(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_indexes(self, chatid : Chatid):
+    def __get_indexes(self, chatid : Chatid):
         ...
 
     @abc.abstractmethod
@@ -308,6 +345,16 @@ class TextUserChatStorage(UserChatStorage):
     def __init__(self, default_path='./database/chats'):
         self.__default_path=default_path
 
+    def _new_chat(self, chatid : Chatid):
+        
+        if self.is_chat_existing(chatid):
+            return None
+
+        new_chat_path=self.__default_path+f'/{str(chatid)}'
+        os.mkdir(new_chat_path)
+
+        open(new_chat_path + f'/users.txt', 'w')
+
     def is_chat_existing(self, chatid : Chatid) -> bool:
         all_chats=os.walk(self.__default_path).__next__()[1]  
 
@@ -323,6 +370,9 @@ class TextUserChatStorage(UserChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
+        if self.get_user_index('the_chat', private_name):
+            return False
+
         user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
         
         for user, index in self.get_indexes(chatid): 
@@ -332,7 +382,9 @@ class TextUserChatStorage(UserChatStorage):
 
         open(user_chat_path, 'a').write(f'{private_name}:0\n')
 
-    def get_indexes(self, chatid : Chatid):
+        return True
+
+    def __get_indexes(self, chatid : Chatid):
         """
         TextUserChatStorage.get_indexes(self, chatid)
 
@@ -390,7 +442,7 @@ class TextUserChatStorage(UserChatStorage):
             for user, index in user_indexes.items():
                 f.write(f'{user}:{index}\n')
 
-    def get_maximum_index(self, chatid : Chatid) -> int:
+    def __get_maximum_index(self, chatid : Chatid) -> int:
         """
         TextUserChatStorage.get_maximum_index(self, chatid)
 
@@ -455,12 +507,10 @@ class TextMessageStorage(MessageStorage):
         if end < start or start < 0:
             return None
         
-        end = end if end < self.get_maximum_index(chatid) else self.get_maximum_index(chatid)
-
         messages_chat_path=self.__default_path+f'/{str(chatid)}/messages.txt'
         with open(messages_chat_path, 'r') as f:
             for index, message in enumerate(f):
-                if start <= index <= end:
+                if start <= index < end:
                     message.rstrip('\n')
                     final_message=self.__ChatMessage.from_string(message)
                     yield final_message
