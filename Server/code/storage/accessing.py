@@ -13,7 +13,7 @@ class TextUserAccesserFactory:
         return UserLogger(self.__tusf.get_credential_storage())
 
     def get_register(self):
-        return UserTextRegister(self.__tusf.get_user_creator())
+        return UserRegister(self.__tusf.get_user_creator())
 
 class UserLogger:
     def __init__(self, credential_storage):
@@ -25,12 +25,18 @@ class UserLogger:
 
         if user_password==password:
             return True
+        elif user_password==None:
+            self.__error=err.AccessError(field='private_name', description='the user doesn\'t exist')
+            return False
 
-        self.__error=err.AccessError('password')
+        self.__error=err.AccessError(field='password', description='wrong password')
         return False
 
-    def get_error_description(self) -> str:
+    def get_error(self):
         return self.__error
+
+    def reset_error(self):
+        self.__error=None
 
 class UserRegister:
     def __init__(self, user_creator):
@@ -49,8 +55,12 @@ class UserRegister:
 
         return True
     
-    def get_error_description(self):
+    def get_error(self):
         return self.__error
+
+    def reset_error(self):
+        self.__error=None
+
 
 """
 class UserAccesserFactory(abc.ABC):

@@ -7,12 +7,14 @@ import os
 
 class TextUserStorageFactory:
     def __init__(self, default_path='./database/users'):
-        self.__notification_storage=TextNotificationStorage(msg.NotificationMessage, default_path)
-        self.__unread_chat_storage=TextUnreadChatStorage(default_path)
-        self.__credential_storage=TextCredentialStorage(default_path)
+        self.__notification_storage=TextNotificationStorage(msg.NotificationMessage, default_path=default_path)
+        self.__unread_chat_storage=TextUnreadChatStorage(default_path=default_path)
+        self.__credential_storage=TextCredentialStorage(default_path=default_path)
+
+        self.__default_path=default_path
 
     def get_user_creator(self):
-        return TextUserCreator(self.__notification_storage, self.__unread_chat_storage, self.__credential_storage, default_path)
+        return TextUserCreator(self.__notification_storage, self.__unread_chat_storage, self.__credential_storage, self.__default_path)
 
     def get_notification_storage(self):
         return self.__notification_storage
@@ -50,9 +52,11 @@ class TextUserCreator(UserCreator):
         new_user_path=self.__default_path + f'/{private_name}'
         os.mkdir(new_user_path)
 
-        self.__notification_storage.new_user(private_name)
-        self.__unread_chat_storage.new_user(private_name)
-        self.__credential_storage.new_user(private_name, credentials)
+        self.__notification_storage._new_user(private_name)
+        self.__unread_chat_storage._new_user(private_name)
+        self.__credential_storage._new_user(private_name, credentials)
+
+        return True
         
     def is_user_existing(self, private_name : str):
         all_users=os.walk(self.__default_path).__next__()[1]
@@ -92,6 +96,15 @@ class TextCredentialStorage(CredentialStorage):
                 credential_value=credentials[credential_type]
                 f.write(f'{credential_type}:{credential_value}\n')
 
+    def is_user_existing(self, private_name : str):
+        all_users=os.walk(self.__default_path).__next__()[1]
+
+        is_user_existing=private_name in all_users
+
+        if not is_user_existing:
+            return False
+
+        return True
 
     def set(self, private_name : str, key : str, value) -> bool:
 
@@ -162,6 +175,16 @@ class TextNotificationStorage(NotificationStorage):
     def _new_user(self, private_name : str):
         open(f'{self.__default_path}/{private_name}/notifications.txt', 'w')
         
+    def is_user_existing(self, private_name : str):
+        all_users=os.walk(self.__default_path).__next__()[1]
+
+        is_user_existing=private_name in all_users
+
+        if not is_user_existing:
+            return False
+
+        return True
+        
     def add(self, private_name : str, notification):
 
         if not self.is_user_existing(private_name):
@@ -225,6 +248,16 @@ class TextUnreadChatStorage(UnreadChatStorage):
     def _new_user(self, private_name : str):
         new_unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
         open(new_unread_chat_path, 'w')
+
+    def is_user_existing(self, private_name : str):
+        all_users=os.walk(self.__default_path).__next__()[1]
+
+        is_user_existing=private_name in all_users
+
+        if not is_user_existing:
+            return False
+
+        return True
 
     def add(self, private_name : str, chat : Chatid):
 
