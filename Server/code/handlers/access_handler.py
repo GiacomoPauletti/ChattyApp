@@ -3,17 +3,17 @@ import threading
 
 from message.abcs import Message
 from storage.abcs import UserLogger, UserRegister
-from storage.accessing import TextUserAccesserFactory
+import storage.accessing as accessing
 from user.abcs import User
 from utilities.registers import AuthorizedUserRegister
 
 #si può creare una classe socket personalizzata che possiede anche il
 #metodo "socket.recv()"
 
-def text_access_handler_factory(user_message, access_answer_message, authorized_user_register):
-    utaf=TextUserAccesserFactory()
-    user_logger=utaf.get_logger()
-    user_register=utaf.get_register
+def text_access_handler_factory(user_message, access_answer_message, authorized_user_register, users_database_path='./database/users'):
+    tuaf=accessing.TextUserAccesserFactory(users_database_path)
+    user_logger=tuaf.get_logger()
+    user_register=tuaf.get_register()
 
     return AccessHandler(user_logger, user_register, user_message, access_answer_message, authorized_user_register)
 
