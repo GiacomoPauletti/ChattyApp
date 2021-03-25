@@ -11,7 +11,7 @@ from utilities.registers import AuthorizedUserRegister
 
 auth_users=AuthorizedUserRegister()
 
-access_handler=text_access_handler_factory(user_message=ChatMessage, access_answer_message=AccessAnswerMessage, authorized_user_register=auth_users)
+access_handler=text_access_handler_factory(user_message=AccessMessage, access_answer_message=AccessAnswerMessage, authorized_user_register=auth_users)
 
 unauth_user_listener=UnauthUserListener(access_handler)
 auth_user_listener=AuthUserListener(auth_users)
