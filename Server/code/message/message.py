@@ -65,3 +65,29 @@ class NotificationMessage:  #per ora è tale e quale al ChatMessage, in futuro v
 
     def __str__(self):
         return f'{self.__sender_private_name}|{self.__receiver_chat_id}|{self.__content}'
+
+class AccessAnswerMessage:
+
+    @classmethod
+    def from_string(cls, message : str):
+
+        if message.count('|') != 1:
+            print('WARNING: the string passed had not the right number of fields (1)')
+            return None
+
+        answer, error = message.split('|')
+
+        return cls(answer=answer, error=error)
+
+    def __init__(self, answer, error=''):
+        self.__answer=answer
+        self.__error=error
+
+    def get_answer(self):
+        return self.__answer
+
+    def get_error(self):
+        return self.__error
+
+    def __str__(self):
+        return f'{self.__answer}|{str(self.__error)}'
