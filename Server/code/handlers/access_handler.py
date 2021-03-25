@@ -50,7 +50,7 @@ class AccessHandler:
             try:
                 has_accessed=self.__access_type_map[msg.type](client=client, client_address=address, msg=msg)
                 if has_accessed:
-                    self.__authorized_user_register.add(client_address, msg.user_private_name)
+                    self.__authorized_user_register.add(client_address, msg.get_private_name())
                     break
             except:
                 continue
@@ -63,7 +63,7 @@ class AccessHandler:
         If the login isn't successfull, an error descriptions is sent back to the client
         See UserLogger for more informations about the user login"""
         
-        has_logged_correctly=self.__user_logger.login(private_name=msg.user_private_name, password=msg.user_password)
+        has_logged_correctly=self.__user_logger.login(private_name=msg.get_private_name(), password=msg.get_password())
 
         if has_logged_correctly:
             answer_msg=self.__AccessAnswerMessage(answer='success')
@@ -83,7 +83,7 @@ class AccessHandler:
         If the registration isn't successfull, an error descriptions is sent back to the client
         See UserLogger for more informations about the user registration"""
 
-        has_registered_correctly=self.__user_register.register(private_name=msg.user_private_name, password=msg.user_password, email=msg.email)
+        has_registered_correctly=self.__user_register.register(private_name=msg.get_private_name(), password=msg.get_password(), email=msg.get_email())
 
         if has_registered_correctly:
             answer_msg=self.__AccessAnswerMessage(answer='success')
