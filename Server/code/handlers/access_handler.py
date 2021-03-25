@@ -69,8 +69,8 @@ class AccessHandler:
             answer_msg=self.__AccessAnswerMessage(answer='success')
 
         else:
-            error_info=self.__user_logger.get_error_description()
-            answer_msg=self.__AccessAnswerMessage(answer='error', error_info=error_info)
+            error=self.__user_logger.get_error()
+            answer_msg=self.__AccessAnswerMessage(answer='failed', error=error)
 
         client.send_with_header(answer_msg.to_string())
         return has_logged_correctly
@@ -88,8 +88,8 @@ class AccessHandler:
         if has_registered_correctly:
             answer_msg=self.__AccessAnswerMessage(answer='success')
         else:
-            error_info=self.__user_register.get_error_description()
-            answer_msg=self.__AccessAnswerMessage(answer='error', error_info=error_info)
+            error=self.__user_register.get_error()
+            answer_msg=self.__AccessAnswerMessage(answer='failed', error=error)
 
         client.send_with_header(answer_msg.to_string())
         return has_registered_correctly
