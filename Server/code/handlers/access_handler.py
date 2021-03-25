@@ -44,10 +44,11 @@ class AccessHandler:
         """
 
         while True:
-            msg=client.recv_with_header()
-            msg=self.__UserMessage.from_string(message)
             
             try:
+                msg=client.recv_with_header()
+                msg=self.__UserMessage.from_string(message)
+
                 has_accessed=self.__access_type_map[msg.type](client=client, client_address=address, msg=msg)
                 if has_accessed:
                     self.__authorized_user_register.add(client_address, msg.get_private_name())

@@ -3,7 +3,7 @@ HEADER=32
 FORMAT='utf-8'
 
 class SocketDecorator:
-    def __init__(socket):
+    def __init__(self, socket):
         self.__socket=socket
 
     def recv_with_header(self):
