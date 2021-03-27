@@ -14,8 +14,8 @@ class Receiver:
         receive_thread.start()
 
     def _receive(self):
+        print('[Receiver] user is now receiving from server') 
         while self.__is_online:
-            print('[Receiver] user is now receiving from server') 
             message=self.__server.recv_with_header()
             print(message)
 
@@ -35,7 +35,10 @@ if __name__ == "__main__":
         receiver=Receiver(login_server)
         receiver.receive()
 
-        login_msg=msg.AccessMessage(private_name='john', password='akab', email='')
+        login_msg=msg.AccessMessage(action='login', private_name='john', password='akab', email='')
         login_server.send_with_header(str(login_msg))
+
+        while True:
+            pass
 
 
