@@ -1,4 +1,4 @@
-from abcs import Message
+from message.abcs import Message
 from utilities.chatid import Chatid
 
 class ChatMessage: 

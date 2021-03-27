@@ -1,4 +1,4 @@
 import abc
 
-class Message:
+class Message(abc.ABC):
     ...
