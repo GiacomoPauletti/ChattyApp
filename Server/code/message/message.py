@@ -32,7 +32,7 @@ class ChatMessage:
         return self.__content
 
     def __str__(self):
-        return f'{self.__sender_private_name}|{self.__receiver_chat_id}|{self.__content}'
+        return f'{self.__sender_private_name}|{self.__receiver_chat_id.get_value()}|{self.__content}'
 
 class NotificationMessage:  #per ora è tale e quale al ChatMessage, in futuro va cambiato
 
@@ -65,3 +65,59 @@ class NotificationMessage:  #per ora è tale e quale al ChatMessage, in futuro v
 
     def __str__(self):
         return f'{self.__sender_private_name}|{self.__receiver_chat_id}|{self.__content}'
+
+class AccessMessage:
+
+    @classmethod
+    def from_string(cls, message : str):
+
+        if message.count('|') != 2:
+            print('WARNING: the string passed had not the right number of fields (1)')
+            return None
+
+        private_name, password, email= message.split('|')
+
+        return cls(private_name=private_name, password=password, email=email)
+
+    def __init__(self, private_name, password, email):
+        self.__private_name=private_name
+        self.__password=password
+        self.__email=email
+
+    def get_private_name(self):
+        return self.__private_name
+
+    def get_password(self):
+        return self.__password
+
+    def get_email(self):
+        return self.__email
+
+    def __str__(self):
+        return f'{self.__private_name}|{self.__password}|{self.__email}'
+
+class AccessAnswerMessage:
+
+    @classmethod
+    def from_string(cls, message : str):
+
+        if message.count('|') != 1:
+            print('WARNING: the string passed had not the right number of fields (1)')
+            return None
+
+        answer, error = message.split('|')
+
+        return cls(answer=answer, error=error)
+
+    def __init__(self, answer, error=''):
+        self.__answer=answer
+        self.__error=error
+
+    def get_answer(self):
+        return self.__answer
+
+    def get_error(self):
+        return self.__error
+
+    def __str__(self):
+        return f'{self.__answer}|{str(self.__error)}'
