@@ -39,7 +39,7 @@ class AccessMessage:
     @classmethod
     def from_string(cls, message : str):
 
-        if message.count('|') != 2:
+        if message.count('|') != 3:
             print('WARNING: the string passed had not the right number of fields (1)')
             return None
 
@@ -47,10 +47,14 @@ class AccessMessage:
 
         return cls(private_name=private_name, password=password, email=email)
 
-    def __init__(self, private_name, password, email=' '):
+    def __init__(self, action, private_name, password, email):
+        self.__action=action if action else " "
         self.__private_name=private_name if private_name else " "
         self.__password=password if password else " "
         self.__email=email if email else " "
+
+    def get_action(self):
+        return self.__private_name
 
     def get_private_name(self):
         return self.__private_name
@@ -62,4 +66,5 @@ class AccessMessage:
         return self.__email
 
     def __str__(self):
-        return f'{self.__private_name}|{self.__password}|{self.__email}'
+        return f'{self.__action}|{self.__private_name}|{self.__password}|{self.__email}'
+

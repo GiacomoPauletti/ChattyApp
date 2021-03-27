@@ -47,15 +47,20 @@ class AccessHandler:
             
             try:
                 msg=client.recv_with_header()
-                msg=self.__UserMessage.from_string(message)
+                msg=self.__UserMessage.from_string(msg)
 
-                has_accessed=self.__access_type_map[msg.type](client=client, client_address=address, msg=msg)
+                print(f"[AccessHandler] msg = {msg}")
+
+                print(f"[AccessHandler] action = {msg.get_action()}")
+
+                has_accessed=self.__access_type_map[msg.get_action()](client=client, client_address=client_address, msg=msg)
                 if has_accessed:
                     self.__authorized_user_register.add(client_address, msg.get_private_name())
                     print(f'[AccessHandler] the user {msg.get_private_name()} has accessed')
                     break
                 print(f'[AccessHandler] the user {msg.get_private_name()} has NOT accessed')
-            except:
+            except Exception as e:
+                #print(f'[AccessHandler] error: {e}')
                 continue
 
     def login(self, client : socket, client_address : tuple, msg : Message):
@@ -75,7 +80,7 @@ class AccessHandler:
             error=self.__user_logger.get_error()
             answer_msg=self.__AccessAnswerMessage(answer='failed', error=error)
 
-        client.send_with_header(answer_msg.to_string())
+        client.send_with_header(str(answer_msg))
         return has_logged_correctly
 
     def register(self, client : socket, client_address : tuple, msg : Message) -> bool:
