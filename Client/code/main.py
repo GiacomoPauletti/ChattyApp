@@ -15,7 +15,8 @@ class Receiver:
 
     def _receive(self):
         while self.__is_online:
-            message=server.recv_with_header()
+            print('[Receiver] user is now receiving from server') 
+            message=self.__server.recv_with_header()
             print(message)
 
     def is_online(self):
