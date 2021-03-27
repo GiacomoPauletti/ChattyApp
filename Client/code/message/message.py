@@ -47,10 +47,10 @@ class AccessMessage:
 
         return cls(private_name=private_name, password=password, email=email)
 
-    def __init__(self, private_name, password, email):
-        self.__private_name=private_name
-        self.__password=password
-        self.__email=email
+    def __init__(self, private_name, password, email=' '):
+        self.__private_name=private_name if private_name else " "
+        self.__password=password if password else " "
+        self.__email=email if email else " "
 
     def get_private_name(self):
         return self.__private_name

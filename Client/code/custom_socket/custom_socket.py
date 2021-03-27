@@ -20,9 +20,10 @@ class SocketDecorator:
         msg= self.__socket.recv(msg_len).decode(FORMAT)
         return msg
 
-    def send_with_header(self, message : str):
+    def send_with_header(self, msg : str):
         """
         SocketDecorator.send_with_header(self, message)
+
         The header is created containing the length of the message. The header
         and the message are then concatenated, encoded following the "FORMAT"
         protocol and sent to the socket
@@ -34,18 +35,6 @@ class SocketDecorator:
         msg = msg_len + msg.encode(FORMAT)
 
         self.__socket.send(msg)
-
-    def custom_accept(self):
-        """
-        SocketDecorator.custom_accept(self)
-        It does the same of the normal socket.accept() but it returns back a
-        decorated socket
-        """
-
-        client, client_address = self.__socket.accept()
-        custom_client=self.__class__(client)
-
-        return (custom_client, client_address)
 
     def __getattr__(self, name):
         """
