@@ -29,12 +29,12 @@ class AccessHandler:
 
         self.__access_type_map={'login':self.login, 'register':self.register, 'disconnect':self.disconnect}
 
-    def handle_access(self, client : socket, client_address : tuple) -> None:
+    def handle(self, client : socket, client_address : tuple) -> None:
 
         handle_access_thread=threading.Thread(target=self._handle_access, args=(client, client_address))
         handle_access_thread.start()
 
-    def _handle_access(self, client : socket, client_address : tuple) -> None:
+    def _handle(self, client : socket, client_address : tuple) -> None:
         """AccessHandler._handler_access(self, client : socket, client_address : tuple, msg : Message) -> User
 
         WHAT IT DOES
