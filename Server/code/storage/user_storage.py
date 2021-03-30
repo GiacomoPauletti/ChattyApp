@@ -8,13 +8,14 @@ import os
 class TextUserStorageFactory:
     def __init__(self, default_path='./database/users'):
         self.__notification_storage=TextNotificationStorage(msg.NotificationMessage, default_path=default_path)
+        self.__user_chat_storage=TextUserChatStorage(default_path=default_path)
         self.__unread_chat_storage=TextUnreadChatStorage(default_path=default_path)
         self.__credential_storage=TextCredentialStorage(default_path=default_path)
 
         self.__default_path=default_path
 
-    def get_user_creator(self):
-        return TextUserCreator(self.__notification_storage, self.__unread_chat_storage, self.__credential_storage, self.__default_path)
+    def get_user_storage_creator(self):
+        return TextUserStorageCreator(self.__notification_storage, self.__user_chat_storage, self.__unread_chat_storage, self.__credential_storage, self.__default_path)
 
     def get_notification_storage(self):
         return self.__notification_storage
@@ -25,7 +26,7 @@ class TextUserStorageFactory:
     def get_credential_storage(self):
         return self.__credential_storage
 
-class UserCreator:
+class UserStorageCreator:
     @abc.abstractmethod
     def new_user(self, private_name : str, credentials : dict):
         ...
@@ -34,8 +35,8 @@ class UserCreator:
     def is_user_existing(self, private_name : str):
         ...
 
-class TextUserCreator(UserCreator):
-    def __init__(self, notification_storage, unread_chat_storage, credential_storage, default_path='./database/users'):
+class TextUserStorageCreator(UserCreator):
+    def __init__(self, notification_storage, user_chat_storage, unread_chat_storage, credential_storage, default_path='./database/users'):
         self.__notification_storage=notification_storage
         self.__unread_chat_storage=unread_chat_storage
         self.__credential_storage=credential_storage
@@ -295,4 +296,87 @@ class TextUnreadChatStorage(UnreadChatStorage):
             for index,chat in enumerate(unread_chats):
                 if index >= end:
                     f.write(chat)
+
+class UserChatStorage(abc.ABC):
+    
+    @abc.abstractmethod
+    def _new_user(self, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def is_user_existing(self, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def add(self, private_name : str, chat : Chatid):
+        ...
+
+    @abc.abstractmethod
+    def get(self, private_name : str, end=None):
+        ...
+
+    @abc.abstractmethod
+    def remove_by_id(self, private_name : str, end=1):
+        ...
+
+class TextUserChatStorage(UserChatStorage):
+    def __init__(self, default_path='./database/users/'):
+        self.__default_path=default_path
+
+    def _new_user(self, private_name : str):
+        new_user_chat_path=self.__default_path + f'/{private_name}/chats.txt'
+        open(new_user_chat_path, 'w')
+
+    def is_user_existing(self, private_name : str):
+        all_users=os.walk(self.__default_path).__next__()[1]
+
+        is_user_existing=private_name in all_users
+
+        if not is_user_existing:
+            return False
+
+        return True
+
+    def add(self, private_name : str, chat : Chatid):
+
+        if not self.is_user_existing(private_name):
+            return False
+
+        chat_path=self.__default_path + f'/{private_name}/chats.txt'
+        with open(chat_path, 'a') as f:
+            f.write(f'{str(chat)}\n')
+
+    def get(self, private_name : str, end=None):
+
+        if not self.is_user_existing(private_name):
+            return False
+
+        chat_path=self.__default_path + f'/{private_name}/chats.txt'
+        with open(chat_path, 'r') as f:
+            for index, chat in enumerate(f):
+                if end==None or index < end:
+                    chat=chat.rstrip('\n')
+                    
+                    final_chat=Chatid.from_string(chat)
+                    yield final_chat
+
+    def remove_by_id(self, private_name : str, chat : Chatid):
+
+        if not self.is_user_existing(private_name):
+            return False
+
+        chat_path=self.__default_path + f'/{private_name}/chats.txt'
+        with open(chat_path, 'r') as f:
+            chats=f.readlines()
+
+        for c in chats:
+            if str(chat) == c.rstrip('\n'):
+                chats.remove(c)
+
+
+        with open(chat_path, 'w') as f:
+            for c in chats:
+                f.write(c)
+
+
 
