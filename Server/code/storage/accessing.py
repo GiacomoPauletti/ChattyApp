@@ -13,7 +13,7 @@ class TextUserAccesserFactory:
         return UserLogger(self.__tusf.get_credential_storage())
 
     def get_register(self):
-        return UserRegister(self.__tusf.get_user_creator())
+        return UserRegister(self.__tusf.get_user_storage_creator())
 
 class UserLogger:
     def __init__(self, credential_storage):
@@ -39,17 +39,17 @@ class UserLogger:
         self.__error=None
 
 class UserRegister:
-    def __init__(self, user_creator):
-        self.__user_creator=user_creator
+    def __init__(self, user_storage_creator):
+        self.__user_storage_creator=user_storage_creator
         self.__error=None
 
     def register(self, private_name : str, password : str, email : str) -> bool:
-        if self.__user_creator.is_user_existing(private_name):
+        if self.__user_storage_creator.is_user_existing(private_name):
             self.__error=err.AccessError(field='private_name', description='private name already existing')
             return False
         
         credentials={'private_name':private_name, 'email':email, 'password':password}
-        if not self.__user_creator.new_user(private_name, credentials):
+        if not self.__user_storage_creator.new_user(private_name, credentials):
             self.__error=err.AccessError(field='unknown', description='unable to register with this credentials')
             return False
 

@@ -24,7 +24,7 @@ class UnauthUserListener:
 
                 print("[UnauthUserListener] new connection")
 
-                self.__access_handler.handle_access(client=client, client_address=client_address)
+                self.__access_handler.handle(client=client, client_address=client_address)
 
 
 class AuthUserListener:
