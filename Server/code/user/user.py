@@ -16,7 +16,7 @@ def user_factory(private_name):
 def remote_user_proxy_factory(client, client_address):
     return UserRemoteProxy(client, client_address)
 
-def user_initializator(private_name, client, client_address):
+def init_user(private_name, client, client_address):
     server_user=user_factory(private_name)
     remote_user_proxy=remote_user_proxy_factory(client, client_address)
 
