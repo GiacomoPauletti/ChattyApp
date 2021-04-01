@@ -20,6 +20,26 @@ class AuthorizedUserRegister:
     def get_name_by_address(self, address):
         return self.__auth_dict.get(address, None)
 
+class ActiveUserRegister:
+
+    def __init__(self):
+        self.__active_users={}
+
+    def add(self, private_name, server_user):
+        if not private_name in self.__active_users.keys():
+            self.__active_users[private_name]=server_user
+            return True
+        return False
+
+    def get(self, private_name):
+        return self.__active_users.get(private_name, None)
+
+    def remove(self, private_name):
+        return bool(self.__active_users.pop(private_name, False))
+    
+    def pop(self, private_name):
+        return self.__active_users.pop(private_name, None)
+
 """
 class ActiveUserList:
     def __init__(self):
