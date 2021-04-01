@@ -1,12 +1,14 @@
 import abc
 
 class IObserver(abc.ABC):
-    @abc.abstractmethod
+    """@abc.abstractmethod
     def update(self):
         ...
+        """
+    ...
 
 class IObservable(abc.ABC):
-    @abc.abstractmethod
+    """@abc.abstractmethod
     def registerObserver(self, observer : IObserver) -> None:
         ...
 
@@ -15,3 +17,5 @@ class IObservable(abc.ABC):
 
     def notifyObservers(self) -> None:
         ...
+        """
+    ...

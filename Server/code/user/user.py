@@ -3,7 +3,7 @@ sys.path.append("utilities")"""
 
 import threading
 
-from utilities.shared_abcs import IObservable, IObserver
+from utilities.shared_abcs import IObserver, IObservable
 from utilities.registers import AuthorizedUserRegister
 from chat.abcs import Chat
 from message.abcs import Message
@@ -110,6 +110,10 @@ class UserLoop:
 
         self.__is_active=True
         while self.__is_active:
+
+            for new_message in server_user.pop_new_messages():
+                user_remote_proxy.send_to_remote(new_message) 
+
             remote_user_message = user_remote_proxy.receive_from_remote()
 
             is_chat_message = remote_user_message != USER_TICK_MESSAGE
@@ -119,8 +123,6 @@ class UserLoop:
                 
                 server_user.send_message(message4chat)
 
-            for new_message in server_user.pop_new_messages():
-                user_remote_proxy.send_to_remote(new_message) 
 
     def stop(self):
         self.__is_active=False
