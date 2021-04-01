@@ -21,11 +21,38 @@ class AuthorizedUserRegister:
         return self.__auth_dict.get(address, None)
 
 
+        
+
+
 class ActiveUserRegister:
 
-    def __init__(self, user_chat_storage):
+    def __init__(self):
         self.__active_users={}
+
+    def add(self, private_name, server_user):
+        if not private_name in self.__active_users.keys():
+            self.__active_users[private_name]=server_user
+            return True
+        return False
+
+    def get(self, private_name):
+        return self.__active_users.get(private_name, None)
+
+    def remove(self, private_name):
+        return bool(self.__active_users.pop(private_name, False))
+    
+    def pop(self, private_name):
+        return self.__active_users.pop(private_name, None)
+
+
+class ActiveChatRegister:
+
+    def __init__(self, active_user_register, user_chat_storage, chat_class):
+        self.__active_chats={}
+        self.__active_user_register=active_user_register
+
         self.__user_chat_storage=user_chat_storage
+        self.__Chat=chat_class
 
     def add(self, chatid, chat_obj):
         if not chatid in self.__active_chats.keys():
@@ -50,28 +77,12 @@ class ActiveUserRegister:
         return self.__active_chats.pop(chatid, None)
 
     def _activate_chat(self, chatid):
-        ...
+        chat_obj=self.__Chat(chatid)
 
-
-class ActiveUserRegister:
-
-    def __init__(self):
-        self.__active_chats={}
-
-    def add(self, chatid, server_user):
-        if not private_name in self.__active_users.keys():
-            self.__active_users[private_name]=server_user
-            return True
-        return False
-
-    def get(self, private_name):
-        return self.__active_users.get(private_name, None)
-
-    def remove(self, private_name):
-        return bool(self.__active_users.pop(private_name, False))
-    
-    def pop(self, private_name):
-        return self.__active_users.pop(private_name, None)
+        for private_name in user_chat_storage.get_users():
+            user_obj=self.__active_user_register.get(private_name)
+            if user_obj:
+                chat_obj.register_user(user_obj)
 
 """
 class ActiveUserList:
