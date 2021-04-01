@@ -20,6 +20,10 @@ class AuthorizedUserRegister:
     def get_name_by_address(self, address):
         return self.__auth_dict.get(address, None)
 
+
+        
+
+
 class ActiveUserRegister:
 
     def __init__(self):
@@ -39,6 +43,46 @@ class ActiveUserRegister:
     
     def pop(self, private_name):
         return self.__active_users.pop(private_name, None)
+
+
+class ActiveChatRegister:
+
+    def __init__(self, active_user_register, user_chat_storage, chat_class):
+        self.__active_chats={}
+        self.__active_user_register=active_user_register
+
+        self.__user_chat_storage=user_chat_storage
+        self.__Chat=chat_class
+
+    def add(self, chatid, chat_obj):
+        if not chatid in self.__active_chats.keys():
+            self.__active_chats[chatid]=chat_obj
+            return True
+        return False
+
+    def get(self, chatid, force=False):
+        
+        is_active=chatid in self.__active_users.keys() 
+        if not is_active and force:
+            chat_obj=self._activate_chat(chatid)
+            self.__active_chats[chatid]=chat_obj
+
+
+        return self.__active_users.get(private_name, None)
+
+    def remove(self, chatid):
+        return bool(self.__active_chats.pop(chatid, False))
+    
+    def pop(self, chatid):
+        return self.__active_chats.pop(chatid, None)
+
+    def _activate_chat(self, chatid):
+        chat_obj=self.__Chat(chatid)
+
+        for private_name in user_chat_storage.get_users():
+            user_obj=self.__active_user_register.get(private_name)
+            if user_obj:
+                chat_obj.register_user(user_obj)
 
 """
 class ActiveUserList:
