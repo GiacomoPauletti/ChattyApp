@@ -20,12 +20,45 @@ class AuthorizedUserRegister:
     def get_name_by_address(self, address):
         return self.__auth_dict.get(address, None)
 
+
+class ActiveUserRegister:
+
+    def __init__(self, user_chat_storage):
+        self.__active_users={}
+        self.__user_chat_storage=user_chat_storage
+
+    def add(self, chatid, chat_obj):
+        if not chatid in self.__active_chats.keys():
+            self.__active_chats[chatid]=chat_obj
+            return True
+        return False
+
+    def get(self, chatid, force=False):
+        
+        is_active=chatid in self.__active_users.keys() 
+        if not is_active and force:
+            chat_obj=self._activate_chat(chatid)
+            self.__active_chats[chatid]=chat_obj
+
+
+        return self.__active_users.get(private_name, None)
+
+    def remove(self, chatid):
+        return bool(self.__active_chats.pop(chatid, False))
+    
+    def pop(self, chatid):
+        return self.__active_chats.pop(chatid, None)
+
+    def _activate_chat(self, chatid):
+        ...
+
+
 class ActiveUserRegister:
 
     def __init__(self):
-        self.__active_users={}
+        self.__active_chats={}
 
-    def add(self, private_name, server_user):
+    def add(self, chatid, server_user):
         if not private_name in self.__active_users.keys():
             self.__active_users[private_name]=server_user
             return True
