@@ -48,7 +48,7 @@ class AuthUserListener:
 
                 is_authorized=self.__authorized_user_register.is_authorized_address(client_address)
                 if is_authorized:
-                    private_name=self.__authorized_user_register.get_name_by_address(client_address)
+                    private_name=self.__authorized_user_register.pop_name_by_address(client_address)
                     self.__user_initializator.init_user(private_name, client, client_address)
 
                 else:

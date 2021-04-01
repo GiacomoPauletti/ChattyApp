@@ -20,6 +20,10 @@ class AuthorizedUserRegister:
     def get_name_by_address(self, address):
         return self.__auth_dict.get(address, None)
 
+    def pop_name_by_address(self, address):
+        return self.__auth_dict.pop(address, None)
+    
+
 """
 class ActiveUserList:
     def __init__(self):
