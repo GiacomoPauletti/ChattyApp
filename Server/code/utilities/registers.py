@@ -21,6 +21,7 @@ class AuthorizedUserRegister:
         return self.__auth_dict.get(address, None)
 
 
+
         
 
 
@@ -85,6 +86,7 @@ class ActiveChatRegister:
                 chat_obj.register_user(user_obj)
 
         return chat_obj
+
 
 """
 class ActiveUserList:

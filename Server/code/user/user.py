@@ -7,6 +7,7 @@ from utilities.shared_abcs import IObserver, IObservable
 from utilities.registers import AuthorizedUserRegister
 from chat.abcs import Chat
 from message.abcs import Message
+from storage.user_storage import TextUnreadChatStorage
 
 USER_TICK_MESSAGE='tick'
 
@@ -16,13 +17,29 @@ def user_factory(private_name):
 def remote_user_proxy_factory(client, client_address):
     return UserRemoteProxy(client, client_address)
 
-def init_user(private_name, client, client_address):
-    server_user=user_factory(private_name)
-    remote_user_proxy=remote_user_proxy_factory(client, client_address)
+def get_text_user_initializator():
+    return UserInitializator(TextUnreadChatStorage())
 
-    user_loop=UserLoop(server_user, remote_user_proxy)
-    user_loop.start()
+class UserInitializator:
+    def __init__(self, active_chat_register, unread_chat_register):
+        self.__unread_chat_register=unread_chat_register
+        self.__active_chat_register=active_chat_register
 
+    def init_user(self, private_name, client, client_address):
+        server_user=user_factory(private_name)
+        remote_user_proxy=remote_user_proxy_factory(client, client_address)
+
+        self._init_user_chats(server_user)
+
+        user_loop=UserLoop(server_user, remote_user_proxy)
+        user_loop.start()
+
+    def _init_user_chats(self, server_user):
+        private_name=server_user.get_private_name()
+        for chatid in self.__unread_chat_register.get(private_name):
+            chat_obj=self.__active_chat_register.get(chatid)
+            chat_obj.register_user(server_user)
+            server_user.register_chat(chat_obj)
     
 class User(IObserver, IObservable):     
     def __init__(self, private_name):
@@ -30,6 +47,8 @@ class User(IObserver, IObservable):
         self.__private_name=private_name
         self.__new_messages=[]
 
+    def get_private_name(self):
+        return self.__private_name
 
     def register_chat(self, chat : Chat) -> None:
         """Part of the Observer pattern (Observable)

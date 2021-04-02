@@ -4,7 +4,6 @@ import threading
 from message.abcs import Message
 from storage.abcs import UserLogger, UserRegister
 import storage.accessing as accessing
-from user.abcs import User
 from utilities.registers import AuthorizedUserRegister
 
 #si può creare una classe socket personalizzata che possiede anche il

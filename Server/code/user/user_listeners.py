@@ -1,6 +1,5 @@
 import socket, threading
 
-from user.user import user_initializator
 from utilities.registers import AuthorizedUserRegister
 from handlers.access_handler import AccessHandler 
 from custom_socket.custom_socket import SocketDecorator
@@ -28,9 +27,10 @@ class UnauthUserListener:
 
 
 class AuthUserListener:
-    def __init__(self, authorized_user_register : AuthorizedUserRegister):
+    def __init__(self, authorized_user_register : AuthorizedUserRegister, user_initializator):
         self.__authorized_user_register=authorized_user_register
         self.__is_listening=True
+        self.__user_initializator=user_initializator
 
     def listen(self):
         listen_thread=threading.Thread(target=self._listen)
@@ -48,8 +48,9 @@ class AuthUserListener:
 
                 is_authorized=self.__authorized_user_register.is_authorized_address(client_address)
                 if is_authorized:
-                    private_name=self.__authorized_user_register.get_name_by_address(client_address)
-                    user_init(private_name, client, client_address)
+                    private_name=self.__authorized_user_register.pop_name_by_address(client_address)
+                    self.__user_initializator.init_user(private_name, client, client_address)
+
                 else:
                     #warn the user of being not authorized
                     pass
