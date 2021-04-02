@@ -62,13 +62,13 @@ class ActiveChatRegister:
 
     def get(self, chatid, force=False):
         
-        is_active=chatid in self.__active_users.keys() 
+        is_active=chatid in self.__active_chats.keys() 
         if not is_active and force:
             chat_obj=self._activate_chat(chatid)
             self.__active_chats[chatid]=chat_obj
 
 
-        return self.__active_users.get(private_name, None)
+        return self.__active_chats.get(chatid, None)
 
     def remove(self, chatid):
         return bool(self.__active_chats.pop(chatid, False))
@@ -79,10 +79,12 @@ class ActiveChatRegister:
     def _activate_chat(self, chatid):
         chat_obj=self.__Chat(chatid)
 
-        for private_name in user_chat_storage.get_users():
+        for private_name in self.__user_chat_storage.get_users(chatid):
             user_obj=self.__active_user_register.get(private_name)
             if user_obj:
                 chat_obj.register_user(user_obj)
+
+        return chat_obj
 
 """
 class ActiveUserList:
