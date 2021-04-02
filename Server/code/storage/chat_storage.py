@@ -59,6 +59,10 @@ class UserChatStorage(abc.ABC):
     def add_user(self, chatid : Chatid, private_name : str):
         ...
 
+    @abc.abstractmethod
+    def get_users(self, chatid : Chatid):
+        ...
+
     def __get_indexes(self, chatid : Chatid):
         ...
 
@@ -110,6 +114,10 @@ class TextUserChatStorage(UserChatStorage):
         open(user_chat_path, 'a').write(f'{private_name}:0\n')
 
         return True
+
+    def get_users(self, chatid : Chatid):
+        for user, index in self.__get_indexes(chatid):
+            yield user
 
     def __get_indexes(self, chatid : Chatid):
         """

@@ -10,19 +10,20 @@ class Chat(IObservable, IObserver):
         self.__all_users=[]
         self.__active_users=[]
 
-    def register_active_user(self, user: User) -> None:
+    def register_user(self, user: User) -> None:
         """Part of the Observer pattern (Observable)
         When a certain user wants to receive messages from this chat, this method must be called"""
-        self.__active_users.append(user)
+        if not user in self.__active_users:
+            self.__active_users.append(user)
 
-    def remove_active_user(self, user : User) -> None:
+    def remove_user(self, user : User) -> None:
         """Part of the Observer pattern (Observable)
         When a certain user for certain reason doesn't want to receive messages from this chat (at least not directly), this method must be called"""
 
         if user in self.__active_users:
             self.__active_users.remove(user)
 
-    def notify_active_users(self, message : Message) -> None:
+    def notify_users(self, message : Message) -> None:
         """Part of the Observer pattern (Observable)
         It sends to all the users the new message"""
 
@@ -35,7 +36,7 @@ class Chat(IObservable, IObserver):
         
         Then the message is stored in the database"""
 
-        self.notify_active_users(message)
+        self.notify_users(message)
 
         #then the message should be saved in database
 
@@ -47,5 +48,5 @@ class ChatProxy:
         self.__chat=chat
 
     def receive_new_message(self, message : Message) -> None:
-        self.__chat.notify_active_users(message)
+        self.__chat.notify_users(message)
 
