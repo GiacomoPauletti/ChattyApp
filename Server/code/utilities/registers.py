@@ -17,8 +17,11 @@ class AuthorizedUserRegister:
     def is_authorized_name(self, private_name):
         return private_name in self.__auth_dict.values()
 
-    def get_name_by_address(self, address):
+    def get(self, address):
         return self.__auth_dict.get(address, None)
+
+    def pop(self, address):
+        return self.__auth_dict.pop(address, None)
 
 
 
