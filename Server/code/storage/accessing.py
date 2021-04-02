@@ -12,8 +12,8 @@ class TextUserAccesserFactory:
     def get_logger(self):
         return UserLogger(self.__tusf.get_credential_storage())
 
-    def get_register(self):
-        return UserRegister(self.__tusf.get_user_storage_creator())
+    def get_registrator(self):
+        return UserRegistrator(self.__tusf.get_user_storage_creator())
 
 class UserLogger:
     def __init__(self, credential_storage):
@@ -38,7 +38,7 @@ class UserLogger:
     def reset_error(self):
         self.__error=None
 
-class UserRegister:
+class UserRegistrator:
     def __init__(self, user_storage_creator):
         self.__user_storage_creator=user_storage_creator
         self.__error=None
@@ -69,7 +69,7 @@ class UserAccesserFactory(abc.ABC):
         ...
     
     @abc.abstractmethod
-    def get_register(self):
+    def get_registrator(self):
         ...
          
 class TextUserLogger(UserLogger):

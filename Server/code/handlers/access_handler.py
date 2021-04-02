@@ -12,14 +12,14 @@ from utilities.registers import AuthorizedUserRegister
 def text_access_handler_factory(user_message, access_answer_message, authorized_user_register, users_database_path='./database/users'):
     tuaf=accessing.TextUserAccesserFactory(users_database_path)
     user_logger=tuaf.get_logger()
-    user_register=tuaf.get_register()
+    user_registrator=tuaf.get_registrator()
 
-    return AccessHandler(user_logger, user_register, user_message, access_answer_message, authorized_user_register)
+    return AccessHandler(user_logger, user_registrator, user_message, access_answer_message, authorized_user_register)
 
 class AccessHandler:
-    def __init__(self, user_logger : UserLogger, user_register : UserRegister, user_message : Message, access_answer_message : Message, authorized_user_register : AuthorizedUserRegister):
+    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message : Message, access_answer_message : Message, authorized_user_register : AuthorizedUserRegister):
         self.__user_logger=user_logger
-        self.__user_register=user_register
+        self.__user_registrator=user_registrator
 
         self.__UserMessage=user_message  #per ora AccessMessage
         self.__AccessAnswerMessage=access_answer_message #per ora AccessAnswerMessage
@@ -91,12 +91,12 @@ class AccessHandler:
         If the registration isn't successfull, an error descriptions is sent back to the client
         See UserLogger for more informations about the user registration"""
 
-        has_registered_correctly=self.__user_register.register(private_name=msg.get_private_name(), password=msg.get_password(), email=msg.get_email())
+        has_registered_correctly=self.__user_registrator.register(private_name=msg.get_private_name(), password=msg.get_password(), email=msg.get_email())
 
         if has_registered_correctly:
             answer_msg=self.__AccessAnswerMessage(answer='success')
         else:
-            error=self.__user_register.get_error()
+            error=self.__user_registrator.get_error()
             answer_msg=self.__AccessAnswerMessage(answer='failed', error=error)
 
         client.send_with_header(answer_msg.to_string())
