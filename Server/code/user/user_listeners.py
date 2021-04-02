@@ -48,10 +48,12 @@ class AuthUserListener:
 
                 is_authorized=self.__authorized_user_register.is_authorized_address(client_address)
                 if is_authorized:
+                    print("[AuthUserListener] connection authorized")
                     private_name=self.__authorized_user_register.pop_name_by_address(client_address)
                     self.__user_initializator.init_user(private_name, client, client_address)
 
                 else:
+                    print("[AuthUserListener] connection not authorized")
                     #warn the user of being not authorized
                     pass
 

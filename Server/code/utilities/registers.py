@@ -1,7 +1,7 @@
 class AuthorizedUserRegister:
 
     def __init__(self, maximum=None):
-        self.__auth_dict=[]
+        self.__auth_dict={}
         self.__maximum=maximum
 
     def add(self, address, private_name):
