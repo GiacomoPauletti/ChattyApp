@@ -7,14 +7,18 @@ from chat.chat import Chat
 from user.user import User, get_text_user_initializator
 from user.user_listeners import UnauthUserListener, AuthUserListener
 from handlers.access_handler import text_access_handler_factory
-from utilities.registers import AuthorizedUserRegister
+from storage.chat_storage import TextUserChatStorage
+import utilities.registers as rgs
 
-auth_users=AuthorizedUserRegister()
+auth_user_register=rgs.AuthorizedUserRegister()
+active_user_register=rgs.ActiveUserRegister()
+active_chat_register=rgs.ActiveChatRegister(active_user_register, TextUserChatStorage(), Chat)
 
-access_handler=text_access_handler_factory(user_message=AccessMessage, access_answer_message=AccessAnswerMessage, authorized_user_register=auth_users)
+
+access_handler=text_access_handler_factory(user_message=AccessMessage, access_answer_message=AccessAnswerMessage, authorized_user_register=auth_user_register)
 
 unauth_user_listener=UnauthUserListener(access_handler)
-auth_user_listener=AuthUserListener(auth_users, get_text_user_initializator())
+auth_user_listener=AuthUserListener(auth_user_register, get_text_user_initializator(active_chat_register))
 
 if __name__ == "__main__":
 
