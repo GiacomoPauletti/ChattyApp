@@ -13,7 +13,8 @@ class Chat(IObservable, IObserver):
     def register_user(self, user: User) -> None:
         """Part of the Observer pattern (Observable)
         When a certain user wants to receive messages from this chat, this method must be called"""
-        self.__active_users.append(user)
+        if not user in self.__active_users:
+            self.__active_users.append(user)
 
     def remove_user(self, user : User) -> None:
         """Part of the Observer pattern (Observable)
