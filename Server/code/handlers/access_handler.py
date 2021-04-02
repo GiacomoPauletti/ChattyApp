@@ -30,7 +30,7 @@ class AccessHandler:
 
     def handle(self, client : socket, client_address : tuple) -> None:
 
-        handle_access_thread=threading.Thread(target=self._handle_access, args=(client, client_address))
+        handle_access_thread=threading.Thread(target=self._handle, args=(client, client_address))
         handle_access_thread.start()
 
     def _handle(self, client : socket, client_address : tuple) -> None:
