@@ -20,6 +20,9 @@ class SocketDecorator:
         msg_len = int(msg_len)
         msg= self.__socket.recv(msg_len).decode(FORMAT)
         return msg
+    
+    def receive_with_header(self):
+        return self.recv_with_header()
 
     def send_with_header(self, msg : str):
         """

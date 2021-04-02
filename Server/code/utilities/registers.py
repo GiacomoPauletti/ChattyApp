@@ -5,7 +5,7 @@ class AuthorizedUserRegister:
         self.__maximum=maximum
 
     def add(self, address, private_name):
-        if self.__maximum and len(self.__auth_dict) < self.__maximum:
+        if not self.__maximum or len(self.__auth_dict) <= self.__maximum:
             self.__auth_dict[address] = private_name
 
     def remove(self, address):

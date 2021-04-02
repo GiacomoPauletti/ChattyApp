@@ -55,8 +55,8 @@ class AccessHandler:
                 has_accessed=self.__access_type_map[msg.get_action()](client=client, client_address=client_address, msg=msg)
                 print(f"[AccessHandler] {has_accessed}")
                 if has_accessed:
-                    self.__authorized_user_register.add(client_address, msg.get_private_name())
-                    print(f'[AccessHandler] the user {msg.get_private_name()} has accessed')
+                    self.__authorized_user_register.add(client_address[0], msg.get_private_name())
+                    print(f'[AccessHandler] the user {msg.get_private_name()} at {client_address} has accessed')
                     break
                 print(f'[AccessHandler] the user {msg.get_private_name()} has NOT accessed')
             except Exception as e:

@@ -44,12 +44,12 @@ class AuthUserListener:
                 real_client, client_address = listener.accept()    #timeout=...
                 client=SocketDecorator(real_client)
 
-                print("[AuthUserListener] new connection")
+                print(f"[AuthUserListener] new connection at {client_address}")
 
-                is_authorized=self.__authorized_user_register.is_authorized_address(client_address)
+                is_authorized=self.__authorized_user_register.is_authorized_address(client_address[0])
                 if is_authorized:
                     print("[AuthUserListener] connection authorized")
-                    private_name=self.__authorized_user_register.pop_name_by_address(client_address)
+                    private_name=self.__authorized_user_register.pop(client_address)
                     self.__user_initializator.init_user(private_name, client, client_address)
 
                 else:

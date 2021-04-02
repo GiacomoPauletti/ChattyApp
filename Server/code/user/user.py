@@ -106,13 +106,13 @@ class UserRemoteProxy:
         self.__client.send_with_header(message.to_string())
 
     def receive_from_remote(self):
-        msg=self.__client.receive_with_header()
+        msg=self.__client.recv_with_header()
         message=msg.from_string()
         return message
 
 class UserLoop:
     def __init__(self, server_user, user_remote_proxy, sleep=0):
-        self.__user=user
+        self.__server_user=server_user
         self.__user_remote_proxy=user_remote_proxy
         self.__sleep=sleep
 
@@ -125,22 +125,22 @@ class UserLoop:
     def _loop(self):
         """Handles the messages of the remote user that must be sent a certain chat and viceversa"""
 
-        server_user.receive_unread_messages()
+        self.__server_user.receive_unread_messages()
 
         self.__is_active=True
         while self.__is_active:
 
-            for new_message in server_user.pop_new_messages():
-                user_remote_proxy.send_to_remote(new_message) 
+            for new_message in self.__server_user.pop_new_messages():
+                self.__user_remote_proxy.send_to_remote(new_message) 
 
-            remote_user_message = user_remote_proxy.receive_from_remote()
+            remote_user_message = self.__user_remote_proxy.receive_from_remote()
 
             is_chat_message = remote_user_message != USER_TICK_MESSAGE
             if is_chat_message:
                 #WARNING: ChatMessage è hard coded, quindi questa funzione è strictly coupled con quella classe
                 message4chat=ChatMessage.from_string(remote_user_message)
                 
-                server_user.send_message(message4chat)
+                self.__server_user.send_message(message4chat)
 
 
     def stop(self):
