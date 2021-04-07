@@ -2,13 +2,19 @@ from utilities.shared_abcs import IObserver, IObservable
 from utilities.chatid import Chatid
 from user.abcs import User
 from message.abcs import Message
+from message.message import ChatMessage
+from storage.chat_storage import TextMessageStorage
 
+message_storage=TextMessageStorage(ChatMessage)
 
 class Chat(IObservable, IObserver):
     def __init__(self, chatid : Chatid):
-        self.chatid=chatid
+        self.__chatid=chatid
         self.__all_users=[]
         self.__active_users=[]
+
+        global message_storage
+        self.__message_storage=message_storage
 
     def register_user(self, user: User) -> None:
         """Part of the Observer pattern (Observable)
@@ -38,7 +44,7 @@ class Chat(IObservable, IObserver):
 
         self.notify_users(message)
 
-        #then the message should be saved in database
+        self.__message_storage.add_message(self.__chatid, message)
 
     def get_chatid(self):
         return self.__chatid.getValue()
