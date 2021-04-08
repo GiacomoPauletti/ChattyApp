@@ -29,9 +29,14 @@ class ChatHandlerListener:
         self.__is_listening=False
 
 class ChatHandler:
-    def __init__(self, user_message_class):
+    def __init__(self, user_message_class, answer_message_class, chat_creator, user_chat_storage, active_chat_register):
         self.__UserMessage=user_message_class
-        self.__client_action_map={'create_chat':self.new_chat, 'leave_chat':self.leave_chat, 'join_chat'.self.join_chat, 'add_user_to_chat':self.add_user_to_chat}
+        self.__AnswerMessageClass=answer_message_class
+        self.__chat_creator=chat_creator
+        self.__active_chat_register=active_chat_register
+        self.__user_chat_storage=user_chat_storage
+
+        self.__client_action_map={'create_chat':self.new_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users_to_chat':self.add_users_to_chat}
 
     def handle(self, client, client_address):
         handle_thread=threading.Thread(target=self._handle, args=(client, client_address))
@@ -48,15 +53,43 @@ class ChatHandler:
                 pass
 
     def new_chat(self, client, client_address, msg):
-        ...
+        #generazione di un nuovo chatid (forse) al posto di questo commento
+
+        chatid=msg.get_chat()
+        if self.__chat_creator(chatid):
+            print('[ChatHandler] new chat created')
+            #essendo stata appena creata, la chat non può essere nel registro, così chiamare il metodo .get() mi crea l'oggetto e me lo aggiunge al registro
+            chat_obj=self.__active_chat_register.get(chatid)
+
+            self.join_chat(client, client_address, msg)
+            self.add_users_to_chat(client, client_address, msg)
+
+            #bisogna notificare gli utenti di essere stati aggiunti
+
+            client.send_with_header(self.__AnswerMessageClass(answer='success'))
+        else:
+            client.send_with_header(self.__AnswerMessageClass(answer='failed'))     #aggiungere "error=..."
+        
+            
 
     def leave_chat(self, client, client_address, msg):
-        ...
+        chatid=msg.get_chat()
+        
+        if self.__user_chat_storage.remove_user(chatid, msg.get_sender()):
+            client.send_with_header(self.__AnswerMessageClass(answer='success'))
+        else:
+            client.send_with_header(self.__AnswerMessageClass(answer='success'))
 
     def join_chat(self, client, client_address, msg):
-        ...
+        chatid=msg.get_chat()
 
-    def add_user_to_chat(self, client, client_address, msg):
-        ...
+        self.__user_chat_storage.add_user(chatid, msg.get_sender())
+
+    def add_users_to_chat(self, client, client_address, msg):
+        chatid=msg.get_chat()
+
+        for user in msg.get_users():
+           self.__user_chat_storage.add_user(chatid, user)
+        
 
 
