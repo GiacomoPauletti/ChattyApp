@@ -22,7 +22,7 @@ class TextChatCreator(abc.ABC):
 
     def new_chat(self, chatid : Chatid):
         if self.is_chat_existing(chatid):
-            return None
+            return False
 
         print(f'[ChatStorage] the chat {chatid} has been created')
 
@@ -31,6 +31,8 @@ class TextChatCreator(abc.ABC):
 
         self.__message_storage._new_chat(chatid)
         self.__user_chat_storage._new_chat(chatid)
+
+        return True
         
     def is_chat_existing(self, chatid : Chatid) -> bool:
         all_chats=os.walk(self.__default_path).__next__()[1]  
