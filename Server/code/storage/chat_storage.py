@@ -62,6 +62,10 @@ class UserChatStorage(abc.ABC):
     @abc.abstractmethod
     def get_users(self, chatid : Chatid):
         ...
+        
+    @abc.abstractmethod
+    def remove_user(self, chatid : Chatid, private_name : str):
+        ...
 
     def __get_indexes(self, chatid : Chatid):
         ...
@@ -118,6 +122,20 @@ class TextUserChatStorage(UserChatStorage):
     def get_users(self, chatid : Chatid):
         for user, index in self.__get_indexes(chatid):
             yield user
+
+    def remove_user(self, chatid : Chatid, private_name : str):
+
+        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
+
+        indexes={user:index for user, index in self.__get_indexes(chatid)]
+
+        with open(user_chat_path, 'w') as f:
+            for user, index in indexes.items():
+                if not user == private_name:
+                    f.write(f'{user}:{index}\n')
+
+        return True
+                    
 
     def __get_indexes(self, chatid : Chatid):
         """
