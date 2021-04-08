@@ -9,20 +9,20 @@ from utilities.registers import AuthorizedUserRegister
 #si può creare una classe socket personalizzata che possiede anche il
 #metodo "socket.recv()"
 
-def text_access_handler_factory(user_message, access_answer_message, authorized_user_register, users_database_path='./database/users'):
+def text_access_handler_factory(user_message_class, answer_message_class, authorized_user_register, users_database_path='./database/users'):
     tuaf=accessing.TextUserAccesserFactory(users_database_path)
     user_logger=tuaf.get_logger()
     user_registrator=tuaf.get_registrator()
 
-    return AccessHandler(user_logger, user_registrator, user_message, access_answer_message, authorized_user_register)
+    return AccessHandler(user_logger=user_logger, user_registrator=user_registrator, user_message_class=user_message_class, answer_message_class=answer_message_class, authorized_user_register=authorized_user_register)
 
 class AccessHandler:
-    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message : Message, access_answer_message : Message, authorized_user_register : AuthorizedUserRegister):
+    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message_class : Message, answer_message_class : Message, authorized_user_register : AuthorizedUserRegister):
         self.__user_logger=user_logger
         self.__user_registrator=user_registrator
 
-        self.__UserMessage=user_message  #per ora AccessMessage
-        self.__AccessAnswerMessage=access_answer_message #per ora AccessAnswerMessage
+        self.__UserMessage=user_message_class  #per ora AccessMessage
+        self.__AnswerMessage=answer_message_class #per ora AccessAnswerMessage
 
         self.__authorized_user_register=authorized_user_register
 
@@ -74,11 +74,11 @@ class AccessHandler:
         has_logged_correctly=self.__user_logger.login(private_name=msg.get_private_name(), password=msg.get_password())
 
         if has_logged_correctly:
-            answer_msg=self.__AccessAnswerMessage(answer='success')
+            answer_msg=self.__AnswerMessage(answer='success')
 
         else:
             error=self.__user_logger.get_error()
-            answer_msg=self.__AccessAnswerMessage(answer='failed', error=error)
+            answer_msg=self.__AnswerMessage(answer='failed', error=error)
 
         client.send_with_header(str(answer_msg))
         return has_logged_correctly
@@ -94,10 +94,10 @@ class AccessHandler:
         has_registered_correctly=self.__user_registrator.register(private_name=msg.get_private_name(), password=msg.get_password(), email=msg.get_email())
 
         if has_registered_correctly:
-            answer_msg=self.__AccessAnswerMessage(answer='success')
+            answer_msg=self.__AnswerMessage(answer='success')
         else:
             error=self.__user_registrator.get_error()
-            answer_msg=self.__AccessAnswerMessage(answer='failed', error=error)
+            answer_msg=self.__AnswerMessage(answer='failed', error=error)
 
         client.send_with_header(answer_msg.to_string())
         return has_registered_correctly
