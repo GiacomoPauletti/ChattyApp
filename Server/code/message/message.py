@@ -38,33 +38,33 @@ class NotificationMessage:  #per ora è tale e quale al ChatMessage, in futuro v
 
     @classmethod
     def from_string(cls, message : str):
-        """Create a NotificationMessage class from a string of the form: sender_private_name|receiver_chat|content"""
+        """Create a NotificationMessage class from a string of the form: sender_private_name|users|content"""
 
         if message.count('|') != 2:
             print('WARNING: the string passed had not the right number of fields (2)')
             return None
 
-        sender_private_name, receiver_chat_id, content = message.split('|')
-        receiver_chat_id=Chatid.from_string(receiver_chat_id)
+        sender_private_name, users, content = message.split('|')
 
-        return cls(sender=sender_private_name, chat=receiver_chat_id, content=content)
+        return cls(sender=sender_private_name, users=users, content=content)
 
-    def __init__(self, sender : str, chat: Chatid,  content : str):
+    def __init__(self, sender : str, users : str,  content : str):
         self.__sender_private_name=sender
-        self.__receiver_chat_id=chat
+        self.__users=users
         self.__content = content
 
     def get_sender(self):
         return self.__sender_private_name
 
-    def get_chat(self):
-        return self.__receiver_chat_id
+    def get_users(self):
+        for user in self.__users.split(';'):
+            yield user
 
     def get_content(self):
         return self.__content
 
     def __str__(self):
-        return f'{self.__sender_private_name}|{self.__receiver_chat_id}|{self.__content}'
+        return f'{self.__sender_private_name}|{self.__users}|{self.__content}'
 
 class AccessMessage:
 

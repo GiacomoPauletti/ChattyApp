@@ -32,13 +32,29 @@ class NotificationHandler:
         self.__AnswerMessage=answer_message_class
         self.__notification_storage=notification_storage
 
-        self.__
+        self.__client_action_map={'get':self.get}  #per ora un utente può solo ricevere i suoi messaggi
 
     def handle(self, client, client_address):
         listen_thread=threading.Thread(target=self._handle, args=(client, client_address))
         listen_thread.start()
         
     def _handle(self, client, client_address):
+
+        while True:
+
+            try:
+                msg=client.recv_with_header()
+                msg=self.__UserMessage.from_string(msg)
+
+                self.__client_action_map[msg.get_action()](client, client_address, msg)
+            except:
+                pass
+
+    def get(self, client, client_address, msg):
+        ...
+        
+
+    
 
 
 
