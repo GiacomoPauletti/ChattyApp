@@ -89,6 +89,29 @@ class NotificationRequestMessage:
     def get_sender(self):
         return self.__sender
 
+class NotificationAnswerMessage:
+
+    @classmethod
+    def from_string(cls, message : str):
+
+        if message.count('|') != 1:
+            print('WARNING: the string passed had not the right number of fields (1)')
+            return None
+
+        answer, content= message.split('|')
+
+        return cls(answer=answer, content=content)
+
+    def __init__(self, answer, content):
+        self.__answer=answer
+        self.__content=content
+
+    def get_answer(self):
+        return self.__answer
+    
+    def get_content(self):
+        return self.__content
+    
 
 class AccessMessage:
 
