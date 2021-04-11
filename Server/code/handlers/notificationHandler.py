@@ -27,7 +27,8 @@ class NotificationServer:
 
             
 class NotificationHandler:
-    def __init__(self, user_message_class, answer_message_class, notification_storage):
+    def __init__(self, address_register, user_message_class, answer_message_class, notification_storage):
+        self.__address_register=address_register
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__notification_storage=notification_storage
@@ -51,7 +52,14 @@ class NotificationHandler:
                 pass
 
     def get(self, client, client_address, msg):
-        ...
+        private_name=self.__address_register.get(client_address, None)
+
+        for notification in self.__notification_storage.pop(private_name):
+            answer_message=self.__AnswerMessage(action='notification', content=notification)
+            client.send_with_header(str(answer_message))
+
+        end_message=self.__AnswerMessage(action='END', content='END')
+        client.send_with_header(str(end_message))
         
 
     
