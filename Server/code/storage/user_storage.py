@@ -167,6 +167,10 @@ class NotificationStorage(abc.ABC):
     def remove(self, private_name : str, end=1):
         ...
 
+    @abc.abstractmethod
+    def pop(self, private_name: str, end=None):
+        ...
+
 class TextNotificationStorage(NotificationStorage):
     def __init__(self, notif_message_class, default_path='./database/users'):
         self.__NotificationMessage=notif_message_class
@@ -223,6 +227,14 @@ class TextNotificationStorage(NotificationStorage):
                 if index >= end:
                     f.write(notif)
 
+    def pop(self, private_name : str, end=None):
+        yield from self.get(private_name, end)
+
+        notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
+        open(notification_path, 'w')
+
+         
+
 
 class UnreadChatStorage(abc.ABC):
     @abc.abstractmethod
@@ -239,6 +251,10 @@ class UnreadChatStorage(abc.ABC):
 
     @abc.abstractmethod
     def remove(self, private_name : str, end=1):
+        ...
+
+    @abc.abstractmethod
+    def pop(self, private_name: str, end=None):
         ...
 
 class TextUnreadChatStorage(UnreadChatStorage):
@@ -295,6 +311,12 @@ class TextUnreadChatStorage(UnreadChatStorage):
             for index,chat in enumerate(unread_chats):
                 if index >= end:
                     f.write(chat)
+
+    def pop(self, private_name : str, end=None):
+        yield from self.get(private_name, end)
+
+        unread_chat_path=self.__default_path + f'/{private_name}/unread_chats.txt'
+        open(unread_chat_path, 'w')
 
 class UserChatStorage(abc.ABC):
     
