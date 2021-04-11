@@ -52,7 +52,21 @@ class NotificationHandler:
                 pass
 
     def get(self, client, client_address, msg):
-        private_name=self.__address_register.get(client_address, None)
+        real_private_name=self.__address_register.get(client_address, None)
+
+        registered_address = real_private_name
+        if  not registered_address:
+            answer_message=self.__AnswerMessage(action='failed', content='not authorized')
+            client.send_with_header(str(answer_message))
+            return None
+
+        sender_private_name=msg.get_sender()
+        different_names = real_private_name != sender_private_name
+        if different_names:
+            answer_message=self.__AnswerMessage(action='failed', content='wrong private_name')
+            client.send_with_header(str(answer_message))
+            return None
+        
 
         for notification in self.__notification_storage.pop(private_name):
             answer_message=self.__AnswerMessage(action='notification', content=notification)
