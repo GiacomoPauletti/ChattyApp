@@ -36,7 +36,7 @@ class AddressRegister:
     def get(self, address):
         return self.__addresses.get(address, None)
 
-    def pop(self, address)
+    def pop(self, address):
         return self.__addresses.pop(address, None)
 
     def remove(self, address):
@@ -47,9 +47,8 @@ class AddressRegister:
 
 class ActiveUserRegister:
 
-    def __init__(self, address_register):
+    def __init__(self):
         self.__active_users={}
-        self.__address_register=address_register
 
     def add(self, private_name, server_user):
         if not private_name in self.__active_users.keys():
@@ -57,18 +56,14 @@ class ActiveUserRegister:
             return True
         return False
 
-    def get(self, key, by_address=False):
-        if by_address:
-            return self.__active_users.get(self.__address_register.get(key, None), None)
-        return self.__active_users.get(key, None)
+    def get(self, private_name):
+        return self.__active_users.get(private_name, None)
 
-    def remove(self, key, by_address=False):
-        return bool(self.pop(key, by_address))
+    def remove(self, private_name):
+        return bool(self.pop(private_name))
     
-    def pop(self, key, by_address=False):
-        if by_address:
-            self.__active_users.pop(self.__address_register.pop(key, None), None)
-        return self.__active_users.pop(key, None)
+    def pop(self, private_name):
+        return self.__active_users.pop(private_name, None)
 
 
 class ActiveChatRegister:

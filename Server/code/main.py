@@ -13,7 +13,7 @@ import utilities.registers as rgs
 #registers initialization
 auth_user_register=rgs.AuthorizedUserRegister()
 address_register=rgs.AddressRegister()
-active_user_register=rgs.ActiveUserRegister(address_register)
+active_user_register=rgs.ActiveUserRegister()
 active_chat_register=rgs.ActiveChatRegister(active_user_register, TextUserChatStorage(), Chat)
 
 #access handler initialization
