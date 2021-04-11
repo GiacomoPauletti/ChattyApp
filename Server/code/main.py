@@ -10,15 +10,19 @@ from handlers.access_handler import text_access_handler_factory
 from storage.chat_storage import TextUserChatStorage
 import utilities.registers as rgs
 
+#registers initialization
 auth_user_register=rgs.AuthorizedUserRegister()
-active_user_register=rgs.ActiveUserRegister()
+address_register=rgs.AddressRegister()
+active_user_register=rgs.ActiveUserRegister(address_register)
 active_chat_register=rgs.ActiveChatRegister(active_user_register, TextUserChatStorage(), Chat)
 
-
+#access handler initialization
 access_handler=text_access_handler_factory(user_message_class=AccessMessage, answer_message_class=AccessAnswerMessage, authorized_user_register=auth_user_register)
 
+#auth and unauth user listener initialization
 unauth_user_listener=UnauthUserListener(access_handler)
-auth_user_listener=AuthUserListener(auth_user_register, get_text_user_initializator(active_user_register, active_chat_register))
+user_initializator=get_text_user_initializator(address_register, active_user_register, active_chat_register)
+auth_user_listener=AuthUserListener(auth_user_register, user_initializator)
 
 if __name__ == "__main__":
 
