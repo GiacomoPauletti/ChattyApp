@@ -68,7 +68,7 @@ class NotificationHandler:
             return None
         
 
-        for notification in self.__notification_storage.pop(private_name):
+        for notification in self.__notification_storage.pop(sender_private_name):
             answer_message=self.__AnswerMessage(action='notification', content=notification)
             client.send_with_header(str(answer_message))
 
