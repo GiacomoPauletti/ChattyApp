@@ -231,7 +231,7 @@ class TextNotificationStorage(NotificationStorage):
         yield from self.get(private_name, end)
 
         notifications_path=self.__default_path + f'/{private_name}/notifications.txt'
-        open(notification_path, 'w')
+        open(notifications_path, 'w')
 
          
 

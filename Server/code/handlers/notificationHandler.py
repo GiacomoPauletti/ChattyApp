@@ -20,15 +20,17 @@ class NotificationServer:
 
             self.__is_listening=True
             while self.__is_listening:
-                real_client, client_address.accept()
+                real_client, client_address = real_server.accept()
+
+                print('[NotificationServer] new connection')
 
                 client=SocketDecorator(real_client)
                 self.__notification_handler.handle(client, client_address)
 
             
 class NotificationHandler:
-    def __init__(self, address_register, user_message_class, answer_message_class, notification_storage):
-        self.__address_register=address_register
+    def __init__(self, auth_user_register, user_message_class, answer_message_class, notification_storage):
+        self.__auth_user_register=auth_user_register
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__notification_storage=notification_storage
@@ -43,36 +45,37 @@ class NotificationHandler:
 
         while True:
 
-            try:
-                msg=client.recv_with_header()
-                msg=self.__UserMessage.from_string(msg)
+            message=client.recv_with_header()
+            message=self.__UserMessage.from_string(message)
+            print(f'[NotificationHandler] new message')
 
-                self.__client_action_map[msg.get_action()](client, client_address, msg)
-            except:
-                pass
+            self.__client_action_map[message.get_action()](client, client_address, message)
 
     def get(self, client, client_address, msg):
-        real_private_name=self.__address_register.get(client_address, None)
+        client_address=client_address[0] if type(client_address) == tuple else client_address
+        real_private_name=self.__auth_user_register.get(client_address)
 
         registered_address = real_private_name
         if  not registered_address:
-            answer_message=self.__AnswerMessage(action='failed', content='not authorized')
+            print('[NotificationHandler] user not authorized to retrieve notifications')
+            answer_message=self.__AnswerMessage(answer='failed', content='not authorized')
             client.send_with_header(str(answer_message))
             return None
 
         sender_private_name=msg.get_sender()
         different_names = real_private_name != sender_private_name
         if different_names:
-            answer_message=self.__AnswerMessage(action='failed', content='wrong private_name')
+            print('[NotificationHandler] user sent a different name from the one which is saved')
+            answer_message=self.__AnswerMessage(answer='failed', content='wrong private_name')
             client.send_with_header(str(answer_message))
             return None
         
 
         for notification in self.__notification_storage.pop(sender_private_name):
-            answer_message=self.__AnswerMessage(action='notification', content=notification)
+            answer_message=self.__AnswerMessage(answer='notification', content=notification)
             client.send_with_header(str(answer_message))
 
-        end_message=self.__AnswerMessage(action='END', content='END')
+        end_message=self.__AnswerMessage(answer='END', content='END')
         client.send_with_header(str(end_message))
         
 

@@ -89,6 +89,9 @@ class NotificationRequestMessage:
     def get_sender(self):
         return self.__sender
 
+    def __str__(self):
+        return f'{self.__action}|{self.__sender}'
+
 class NotificationAnswerMessage:
 
     @classmethod
@@ -111,6 +114,9 @@ class NotificationAnswerMessage:
     
     def get_content(self):
         return self.__content
+
+    def __str__(self):
+        return f'{self.__answer}|{self.__content}'
     
 
 class AccessMessage:
