@@ -24,27 +24,6 @@ class AuthorizedUserRegister:
         return self.__auth_dict.pop(address, None)
 
 
-
-class AddressRegister:
-    def __init__(self):
-        self.__addresses={}
-
-    def add(self, address, private_name):
-        self.__addresses[address]=private_name
-        return True
-
-    def get(self, address):
-        return self.__addresses.get(address, None)
-
-    def pop(self, address):
-        return self.__addresses.pop(address, None)
-
-    def remove(self, address):
-        return bool(self.pop(address))
-    
-        
-
-
 class ActiveUserRegister:
 
     def __init__(self):
