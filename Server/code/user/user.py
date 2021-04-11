@@ -17,19 +17,22 @@ def user_factory(private_name):
 def remote_user_proxy_factory(client, client_address):
     return UserRemoteProxy(client, client_address)
 
-def get_text_user_initializator(active_chat_register):
-    return UserInitializator(active_chat_register, TextUnreadChatStorage())
+def get_text_user_initializator(active_user_register, active_chat_register):
+    return UserInitializator(active_user_register, active_chat_register, TextUnreadChatStorage())
 
 class UserInitializator:
-    def __init__(self, active_chat_register, unread_chat_register):
-        self.__unread_chat_register=unread_chat_register
+    def __init__(self, active_user_register, active_chat_register, unread_chat_register):
+        self.__active_user_register=active_user_register
         self.__active_chat_register=active_chat_register
+        self.__unread_chat_register=unread_chat_register
 
     def init_user(self, private_name, client, client_address):
         server_user=user_factory(private_name)
         remote_user_proxy=remote_user_proxy_factory(client, client_address)
 
         self._init_user_chats(server_user)
+
+        self.__active_user_register.add(private_name, server_user)
 
         user_loop=UserLoop(server_user, remote_user_proxy)
         user_loop.start()

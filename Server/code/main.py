@@ -18,7 +18,7 @@ active_chat_register=rgs.ActiveChatRegister(active_user_register, TextUserChatSt
 access_handler=text_access_handler_factory(user_message_class=AccessMessage, answer_message_class=AccessAnswerMessage, authorized_user_register=auth_user_register)
 
 unauth_user_listener=UnauthUserListener(access_handler)
-auth_user_listener=AuthUserListener(auth_user_register, get_text_user_initializator(active_chat_register))
+auth_user_listener=AuthUserListener(auth_user_register, get_text_user_initializator(active_user_register, active_chat_register))
 
 if __name__ == "__main__":
 
