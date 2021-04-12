@@ -1,7 +1,7 @@
 import threading, socket
 from custom_socket.custom_socket import SocketDecorator
 
-class ChatHandlerListener:
+class ChatHandlerServer:
     def __init__(self, chat_handler):
         self.__address=('', 11000)
         self.__is_listening=False
@@ -29,12 +29,17 @@ class ChatHandlerListener:
         self.__is_listening=False
 
 class ChatHandler:
-    def __init__(self, user_message_class, answer_message_class, chat_creator, user_chat_storage, active_chat_register):
+    def __init__(self, user_message_class, answer_message_class, notification_message_class, chat_creator, user_chat_storage, active_chat_register, auth_user_register, notification_storage):
         self.__UserMessage=user_message_class
-        self.__AnswerMessageClass=answer_message_class
-        self.__chat_creator=chat_creator
+        self.__AnswerMessage=answer_message_class
+        self.__NotificationMessage=notification_message_class
+
         self.__active_chat_register=active_chat_register
+        self.__auth_user_register=auth_user_register
+        
+        self.__chat_creator=chat_creator
         self.__user_chat_storage=user_chat_storage
+        self.__notification_storage=notification_storage
 
         self.__client_action_map={'create_chat':self.new_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users_to_chat':self.add_users_to_chat}
 
@@ -55,6 +60,11 @@ class ChatHandler:
     def new_chat(self, client, client_address, msg):
         #generazione di un nuovo chatid (forse) al posto di questo commento
 
+        private_name=self.__auth_user_register.get(client_address[0])
+        if not private_name:
+            answer_message=self.__AnswerMessage(answer='failed')    #aggiungere "error='not authorized'"
+            return None
+
         chatid=msg.get_chat()
         if self.__chat_creator(chatid):
             print('[ChatHandler] new chat created')
@@ -64,11 +74,12 @@ class ChatHandler:
             self.join_chat(client, client_address, msg)
             self.add_users_to_chat(client, client_address, msg)
 
-            #bisogna notificare gli utenti di essere stati aggiunti
+            notification_message=self.__NotificationMessage.from_string(f'{private_name}||added to {chatid}')
+            self.__notification_storage.add(notification_message)
 
-            client.send_with_header(self.__AnswerMessageClass(answer='success'))
+            client.send_with_header(self.__AnswerMessage(answer='success'))
         else:
-            client.send_with_header(self.__AnswerMessageClass(answer='failed'))     #aggiungere "error=..."
+            client.send_with_header(self.__AnswerMessage(answer='failed'))     #aggiungere "error=..."
         
             
 
@@ -76,9 +87,9 @@ class ChatHandler:
         chatid=msg.get_chat()
         
         if self.__user_chat_storage.remove_user(chatid, msg.get_sender()):
-            client.send_with_header(self.__AnswerMessageClass(answer='success'))
+            client.send_with_header(self.__AnswerMessage(answer='success'))
         else:
-            client.send_with_header(self.__AnswerMessageClass(answer='success'))
+            client.send_with_header(self.__AnswerMessage(answer='success'))
 
     def join_chat(self, client, client_address, msg):
         chatid=msg.get_chat()
