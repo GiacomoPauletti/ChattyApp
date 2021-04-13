@@ -18,8 +18,8 @@ class ChatHandlerServer:
 
             self.__is_listening=True
             while self.__is_listening:
-                print('[ChatHandlerServer] new connection')
                 real_client, address=server.accept()
+                print('[ChatHandlerServer] new connection')
                 client=SocketDecorator(real_client)
 
                 self.__chat_handler.handle(client, address)
@@ -41,11 +41,11 @@ class ChatHandler:
         self.__user_chat_storage=user_chat_storage
         self.__notification_storage=notification_storage
 
-        self.__client_action_map={'create_chat':self.new_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users_to_chat':self.add_users_to_chat}
+        self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users_to_chat':self.add_users_to_chat}
 
     def handle(self, client, client_address):
         handle_thread=threading.Thread(target=self._handle, args=(client, client_address))
-        handler_thread.start()
+        handle_thread.start()
 
     def _handle(self, client, client_address):
         while True:
@@ -53,20 +53,21 @@ class ChatHandler:
                 msg=client.recv_with_header()
                 msg=self.__UserMessage.from_string(msg)
 
-                self.__client_action_map[msg.get_action()](client=client, client_address=client_address, msg=msg)
             except:
                 pass
 
-    def new_chat(self, client, client_address, msg):
+            self.__client_action_map[msg.get_action()](client=client, client_address=client_address, msg=msg)
+
+    def create_chat(self, client, client_address, msg):
         #generazione di un nuovo chatid (forse) al posto di questo commento
 
         private_name=self.__auth_user_register.get(client_address[0])
         if not private_name:
-            answer_message=self.__AnswerMessage(answer='failed')    #aggiungere "error='not authorized'"
+            client.send_with_header(self.__AnswerMessage(answer='failed', content='not authorized'))    
             return None
 
         chatid=msg.get_chat()
-        if self.__chat_creator(chatid):
+        if self.__chat_creator.new_chat(chatid):
             print('[ChatHandler] new chat created')
             #essendo stata appena creata, la chat non può essere nel registro, così chiamare il metodo .get() mi crea l'oggetto e me lo aggiunge al registro
             chat_obj=self.__active_chat_register.get(chatid)
@@ -77,9 +78,9 @@ class ChatHandler:
             notification_message=self.__NotificationMessage.from_string(f'{private_name}||added to {chatid}')
             self.__notification_storage.add(notification_message)
 
-            client.send_with_header(self.__AnswerMessage(answer='success'))
+            client.send_with_header(self.__AnswerMessage(answer='success', content=f'created {chatid}'))
         else:
-            client.send_with_header(self.__AnswerMessage(answer='failed'))     #aggiungere "error=..."
+            client.send_with_header(self.__AnswerMessage(answer='failed', content=f'{chatid} already existing'))     
         
             
 
@@ -87,20 +88,25 @@ class ChatHandler:
         chatid=msg.get_chat()
         
         if self.__user_chat_storage.remove_user(chatid, msg.get_sender()):
-            client.send_with_header(self.__AnswerMessage(answer='success'))
+            client.send_with_header(self.__AnswerMessage(answer='success', content=f'left {chatid}'))
         else:
-            client.send_with_header(self.__AnswerMessage(answer='success'))
+            client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to leave {chatid}'))
 
     def join_chat(self, client, client_address, msg):
         chatid=msg.get_chat()
 
-        self.__user_chat_storage.add_user(chatid, msg.get_sender())
+        if self.__user_chat_storage.add_user(chatid, msg.get_sender()):
+            client.send_with_header(self.__AnswerMessage(answer='success', content=f'joined {chatid}'))
+        else:
+            client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to change {chatid}'))
+
 
     def add_users_to_chat(self, client, client_address, msg):
         chatid=msg.get_chat()
 
         for user in msg.get_users():
-           self.__user_chat_storage.add_user(chatid, user)
+            self.__user_chat_storage.add_user(chatid, user)
+
         
 
 

@@ -60,7 +60,7 @@ class ChatRequestMessage:
         for user in self.__users:
             yield user
 
-    def get_chatid(self):
+    def get_chat(self):
         return self.__chatid
 
     def __str__(self):

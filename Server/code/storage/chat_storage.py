@@ -129,7 +129,7 @@ class TextUserChatStorage(UserChatStorage):
 
         user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
 
-        indexes={user:index for user, index in self.__get_indexes(chatid)]
+        indexes={user:index for user, index in self.__get_indexes(chatid)}
 
         with open(user_chat_path, 'w') as f:
             for user, index in indexes.items():
