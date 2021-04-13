@@ -32,6 +32,7 @@ class SocketDecorator:
         and the message are then concatenated, encoded following the "FORMAT"
         protocol and sent to the socket
         """
+        msg=str(msg)
 
         msg_len=f"{len(msg)}".encode(FORMAT)
         msg_len += (' ' * (HEADER - len(msg_len))).encode(FORMAT)
