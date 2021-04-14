@@ -34,14 +34,79 @@ class ChatMessage:
     def __str__(self):
         return f'{self.__sender_private_name}|{self.__receiver_chat_id.get_value()}|{self.__content}'
 
-class NotificationMessage:  #per ora è tale e quale al ChatMessage, in futuro va cambiato
+class ChatRequestMessage:
+
+    @classmethod
+    def from_string(cls, message : str):
+        """Create a ChatRequestMessage class from a string of the form: action|chatid"""
+
+        if message.count('|') != 2:
+            print('WARNING: the string passed had not the right number of fields (3)')
+            return None
+
+        action, users, chatid = message.split('|')
+        users=users.split(';')
+        return cls(action=action, users=users, chatid=chatid)
+
+    def __init__(self, action, users, chatid):
+        self.__action=action
+        self.__users=users
+        self.__chatid=chatid
+
+    def get_action(self):
+        return self.__action
+
+    def get_users(self):
+        for user in self.__users:
+            yield user
+    
+    def get_users_str(self):
+        return ';'.join(self.__users)
+
+    def get_chat(self):
+        return self.__chatid
+
+    def __str__(self):
+        return f'{self.__action}|{";".join(self.__users)}|{self.__chatid}'
+
+class ChatAnswerMessage:
+
+    @classmethod
+    def from_string(cls, message : str):
+        """Create a ChatAnswerMessage class from a string of the form: answer|content"""
+
+        if message.count('|') != 1:
+            print('WARNING: the string passed had not the right number of fields (2)')
+            return None
+
+        answer, content = message.split('|')
+
+        return cls(answer=answer, content=content)
+
+    def __init__(self, answer, content):
+        self.__answer=answer
+        self.__content=content
+
+    def get_answer(self):
+        return self.__answer
+
+    def get_content(self):
+        return self.__content
+
+    def __str__(self):
+        return f'{self.__answer}|{self.__content}'
+
+        self.__content=content
+    
+
+class NotificationMessage:  
 
     @classmethod
     def from_string(cls, message : str):
         """Create a NotificationMessage class from a string of the form: sender_private_name|users|content"""
 
         if message.count('|') != 2:
-            print('WARNING: the string passed had not the right number of fields (2)')
+            print('WARNING: the string passed had not the right number of fields (3)')
             return None
 
         sender_private_name, users, content = message.split('|')
