@@ -64,7 +64,7 @@ class ChatHandler:
         private_name=self.__auth_user_register.get(client_address[0])
         if not private_name:
             client.send_with_header(self.__AnswerMessage(answer='failed', content='not authorized'))    
-            return None
+            return False
 
         chatid=msg.get_chat()
         if self.__chat_creator.new_chat(chatid):
@@ -76,8 +76,10 @@ class ChatHandler:
             self.add_users(client, client_address, msg)
 
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'created {chatid}'))
+            return True
         else:
             client.send_with_header(self.__AnswerMessage(answer='failed', content=f'{chatid} already existing'))     
+            return False
         
             
 
@@ -85,19 +87,29 @@ class ChatHandler:
         chatid=msg.get_chat()
         private_name=self.__auth_user_register.get(client_address[0])
 
+        if not private_name in self.__user_chat_storage.get_users(chatid):
+            return True
+
         if self.__user_chat_storage.remove_user(chatid, private_name):
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'left {chatid}'))
+            return True
         else:
             client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to leave {chatid}'))
+            return False
 
     def join_chat(self, client, client_address, msg):
         chatid=msg.get_chat()
         private_name=self.__auth_user_register.get(client_address[0])
 
+        if private_name in self.__user_chat_storage.get_users(chatid):
+            return True
+
         if self.__user_chat_storage.add_user(chatid, private_name):
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'joined {chatid}'))
+            return True
         else:
             client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to change {chatid}'))
+            return False
 
 
     def add_users(self, client, client_address, msg):
@@ -105,6 +117,9 @@ class ChatHandler:
         private_name=self.__auth_user_register.get(client_address[0])
 
         for user in msg.get_users():
+            if user in self.__user_chat_storage.get_users(chatid):
+                continue
+
             self.__user_chat_storage.add_user(chatid, user)
 
             notification_message=self.__NotificationMessage.from_string(f'{private_name}|{msg.get_users_str()}|added to {chatid}')
