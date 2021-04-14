@@ -41,7 +41,7 @@ class ChatHandler:
         self.__user_chat_storage=user_chat_storage
         self.__notification_storage=notification_storage
 
-        self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users_to_chat':self.add_users_to_chat}
+        self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users}
 
     def handle(self, client, client_address):
         handle_thread=threading.Thread(target=self._handle, args=(client, client_address))
@@ -73,10 +73,7 @@ class ChatHandler:
             chat_obj=self.__active_chat_register.get(chatid)
 
             self.join_chat(client, client_address, msg)
-            self.add_users_to_chat(client, client_address, msg)
-
-            notification_message=self.__NotificationMessage.from_string(f'{private_name}||added to {chatid}')
-            self.__notification_storage.add(notification_message)
+            self.add_users(client, client_address, msg)
 
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'created {chatid}'))
         else:
@@ -86,26 +83,32 @@ class ChatHandler:
 
     def leave_chat(self, client, client_address, msg):
         chatid=msg.get_chat()
-        
-        if self.__user_chat_storage.remove_user(chatid, msg.get_sender()):
+        private_name=self.__auth_user_register.get(client_address[0])
+
+        if self.__user_chat_storage.remove_user(chatid, private_name):
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'left {chatid}'))
         else:
             client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to leave {chatid}'))
 
     def join_chat(self, client, client_address, msg):
         chatid=msg.get_chat()
+        private_name=self.__auth_user_register.get(client_address[0])
 
-        if self.__user_chat_storage.add_user(chatid, msg.get_sender()):
+        if self.__user_chat_storage.add_user(chatid, private_name):
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'joined {chatid}'))
         else:
             client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to change {chatid}'))
 
 
-    def add_users_to_chat(self, client, client_address, msg):
+    def add_users(self, client, client_address, msg):
         chatid=msg.get_chat()
+        private_name=self.__auth_user_register.get(client_address[0])
 
         for user in msg.get_users():
             self.__user_chat_storage.add_user(chatid, user)
+
+            notification_message=self.__NotificationMessage.from_string(f'{private_name}|{msg.get_users_str()}|added to {chatid}')
+            self.__notification_storage.add(user, notification_message)
 
         
 

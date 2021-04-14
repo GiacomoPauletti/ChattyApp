@@ -59,6 +59,9 @@ class ChatRequestMessage:
     def get_users(self):
         for user in self.__users:
             yield user
+    
+    def get_users_str(self):
+        return ';'.join(self.__users)
 
     def get_chat(self):
         return self.__chatid

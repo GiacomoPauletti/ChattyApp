@@ -107,12 +107,12 @@ class TextUserChatStorage(UserChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        if self.get_user_index('the_chat', private_name):
+        if self.get_user_index(chatid, private_name):
             return False
 
         user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
         
-        for user, index in self.get_indexes(chatid): 
+        for user, index in self.__get_indexes(chatid): 
             if user == private_name:
                 print(f'[ChatStorage] the user {private_name} has already been added to {str(chatid)}')
                 return None
@@ -141,7 +141,7 @@ class TextUserChatStorage(UserChatStorage):
 
     def __get_indexes(self, chatid : Chatid):
         """
-        TextUserChatStorage.get_indexes(self, chatid)
+        TextUserChatStorage.__get_indexes(self, chatid)
 
         It is an iterator which yields the user and the respective index of the passed chat, if it exists
         """
@@ -170,7 +170,7 @@ class TextUserChatStorage(UserChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        for user, index in self.get_indexes(chatid):
+        for user, index in self.__get_indexes(chatid):
             if user==private_name:
                 return index
         else:
@@ -183,7 +183,7 @@ class TextUserChatStorage(UserChatStorage):
         It increments by 'incrementor' the index of the passed user
         """ 
 
-        user_indexes={user:index for user, index in self.get_indexes(chatid)}
+        user_indexes={user:index for user, index in self.__get_indexes(chatid)}
         if not user_indexes:
             return None
         
