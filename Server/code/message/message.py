@@ -184,7 +184,7 @@ class NotificationAnswerMessage:
         return f'{self.__answer}|{self.__content}'
     
 
-class AccessMessage:
+class AccessRequestMessage:
 
     @classmethod
     def from_string(cls, message : str):

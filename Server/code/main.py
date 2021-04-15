@@ -2,7 +2,6 @@ import abc
 import threading
 import socket
 
-from message.message import AccessMessage, AccessAnswerMessage
 from chat.chat import Chat
 from user.user import User, get_text_user_initializator
 from user.user_listeners import UnauthUserListener, AuthUserListener

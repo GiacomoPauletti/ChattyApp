@@ -10,7 +10,7 @@ from utilities.registers import AuthorizedUserRegister
 #si può creare una classe socket personalizzata che possiede anche il
 #metodo "socket.recv()"
 
-def text_access_handler_factory(user_message_class=msg.AccessMessage, answer_message_class=msg.AccessAnswerMessage, authorized_user_register, users_database_path='./database/users'):
+def text_access_handler_factory(user_message_class=msg.AccessRequestMessage, answer_message_class=msg.AccessAnswerMessage, authorized_user_register, users_database_path='./database/users'):
     tuaf=accessing.TextUserAccesserFactory(users_database_path)
     user_logger=tuaf.get_logger()
     user_registrator=tuaf.get_registrator()
@@ -18,12 +18,12 @@ def text_access_handler_factory(user_message_class=msg.AccessMessage, answer_mes
     return AccessHandler(user_logger=user_logger, user_registrator=user_registrator, user_message_class=user_message_class, answer_message_class=answer_message_class, authorized_user_register=authorized_user_register)
 
 class AccessHandler:
-    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message_class=msg.AccessMessage, answer_message_class=AccessAnswerMessage, authorized_user_register : AuthorizedUserRegister):
+    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message_class, answer_message_class, authorized_user_register : AuthorizedUserRegister):
         self.__user_logger=user_logger
         self.__user_registrator=user_registrator
 
-        self.__UserMessage=user_message_class  #per ora AccessMessage
-        self.__AnswerMessage=answer_message_class #per ora AccessAnswerMessage
+        self.__UserMessage=user_message_class  
+        self.__AnswerMessage=answer_message_class 
 
         self.__authorized_user_register=authorized_user_register
 
