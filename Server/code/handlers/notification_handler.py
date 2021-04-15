@@ -1,5 +1,6 @@
 import socket, threading
 from custom_socket.custom_socket import SocketDecorator
+import message.message as msg
 
 class NotificationServer:
     def __init__(self, notification_handler):
@@ -29,7 +30,7 @@ class NotificationServer:
 
             
 class NotificationHandler:
-    def __init__(self, auth_user_register, user_message_class, answer_message_class, notification_storage):
+    def __init__(self, user_message_class=msg.NotificationRequestMessage, answer_message_class=NotificationAnswerMessage, auth_user_register, notification_storage):
         self.__auth_user_register=auth_user_register
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class

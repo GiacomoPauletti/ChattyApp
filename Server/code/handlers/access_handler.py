@@ -2,6 +2,7 @@ from socket import socket
 import threading
 
 from message.abcs import Message
+import message.message as msg
 from storage.abcs import UserLogger, UserRegister
 import storage.accessing as accessing
 from utilities.registers import AuthorizedUserRegister
@@ -9,7 +10,7 @@ from utilities.registers import AuthorizedUserRegister
 #si può creare una classe socket personalizzata che possiede anche il
 #metodo "socket.recv()"
 
-def text_access_handler_factory(user_message_class, answer_message_class, authorized_user_register, users_database_path='./database/users'):
+def text_access_handler_factory(user_message_class=msg.AccessMessage, answer_message_class=msg.AccessAnswerMessage, authorized_user_register, users_database_path='./database/users'):
     tuaf=accessing.TextUserAccesserFactory(users_database_path)
     user_logger=tuaf.get_logger()
     user_registrator=tuaf.get_registrator()
@@ -17,7 +18,7 @@ def text_access_handler_factory(user_message_class, answer_message_class, author
     return AccessHandler(user_logger=user_logger, user_registrator=user_registrator, user_message_class=user_message_class, answer_message_class=answer_message_class, authorized_user_register=authorized_user_register)
 
 class AccessHandler:
-    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message_class : Message, answer_message_class : Message, authorized_user_register : AuthorizedUserRegister):
+    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message_class=msg.AccessMessage, answer_message_class=AccessAnswerMessage, authorized_user_register : AuthorizedUserRegister):
         self.__user_logger=user_logger
         self.__user_registrator=user_registrator
 

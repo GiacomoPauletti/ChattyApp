@@ -1,19 +1,38 @@
 import abc
 from message.abcs import Message
+import message.message as msg
 from utilities.chatid import Chatid
 from user.abcs import User
 import os
 
 
-class ChatCreator(abc.ABC):
+class TextChatStorageFactory:
+    def __init__(self, default_path='./database/chats'):
+        self.__user_chat_storage=TextUserChatStorage(default_path=default_path)
+        self.__message_storage=TextMessageStorage(chat_message_class=msg.ChatMessage, default_path=default_path)
+
+        self.__default_path=default_path
+
+    def get_chat_storage_creator(self):
+        return TextChatStorageCreator(self.__message_storage, self.__user_chat_storage, self.__default_path)
+
+    def get_user_chat_storage(self):
+        return self.__notification_storage
+
+    def get_message_storage(self):
+        return self.__message_storage
+
+
+class ChatStorageCreator(abc.ABC):
     @abc.abstractmethod
     def new_chat(self, chatid : Chatid):
         ...
 
+    @abc.abstractmethod
     def is_chat_existing(self, chatid : Chatid):
         ...
 
-class TextChatCreator(abc.ABC):
+class TextChatStorageCreator(ChatStorageCreator):
     def __init__(self, message_storage, user_chat_storage, default_path='./database/chats'):
         self.__message_storage=message_storage
         self.__user_chat_storage=user_chat_storage
@@ -225,7 +244,7 @@ class MessageStorage(abc.ABC):
         ...
 
 class TextMessageStorage(MessageStorage):
-    def __init__(self, chat_message_class, default_path='./database/chats'):
+    def __init__(self, chat_message_class=msg.ChatMessage, default_path='./database/chats'):
         self.__ChatMessage=chat_message_class
         
         self.__default_path=default_path
