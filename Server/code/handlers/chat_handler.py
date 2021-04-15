@@ -9,10 +9,7 @@ def text_chat_handler_factory(user_message_class=msg.ChatRequestMessage, answer_
     user_chat_storage=tcsf.get_user_chat_storage()
     notification_storage=TextNotificationStorage(notification_message_class)
 
-    return ChatHandler(user_message_class, answer_message_class, active_chat_register, auth_user_register, chat_storage_creator, user_chat_storage, notification_storage)
-
-    
-    
+    return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_creator, user_chat_storage, notification_storage)
 
 
 class ChatHandlerServer:
