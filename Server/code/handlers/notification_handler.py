@@ -1,6 +1,11 @@
 import socket, threading
 from custom_socket.custom_socket import SocketDecorator
+from storage.user_storage import TextNotificationStorage
 import message.message as msg
+
+def text_notification_storage_factory(user_message_class=msg.NotificationRequestMessage, answer_message_class=NotificationAnswerMessage, auth_user_register):
+    notification_storage=TextNotificationStorage()
+    return NotificationHandler(user_message_class, answer_message_class, auth_user_register, notification_storage)
 
 class NotificationServer:
     def __init__(self, notification_handler):
