@@ -10,7 +10,7 @@ from utilities.registers import AuthorizedUserRegister
 #si può creare una classe socket personalizzata che possiede anche il
 #metodo "socket.recv()"
 
-def text_access_handler_factory(user_message_class=msg.AccessRequestMessage, answer_message_class=msg.AccessAnswerMessage, authorized_user_register, users_database_path='./database/users'):
+def text_access_handler_factory(authorized_user_register, users_database_path='./database/users', user_message_class=msg.AccessRequestMessage, answer_message_class=msg.AccessAnswerMessage):
     tuaf=accessing.TextUserAccesserFactory(users_database_path)
     user_logger=tuaf.get_logger()
     user_registrator=tuaf.get_registrator()

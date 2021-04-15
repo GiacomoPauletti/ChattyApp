@@ -17,7 +17,7 @@ class TextChatStorageFactory:
         return TextChatStorageCreator(self.__message_storage, self.__user_chat_storage, self.__default_path)
 
     def get_user_chat_storage(self):
-        return self.__notification_storage
+        return self.__user_chat_storage
 
     def get_message_storage(self):
         return self.__message_storage
