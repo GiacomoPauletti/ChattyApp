@@ -7,6 +7,7 @@ from utilities.shared_abcs import IObserver, IObservable
 from utilities.registers import AuthorizedUserRegister
 from chat.abcs import Chat
 from message.abcs import Message
+import message.message as msg
 from storage.user_storage import TextUnreadChatStorage
 
 USER_TICK_MESSAGE='tick'
@@ -71,7 +72,7 @@ class User(IObserver, IObservable):
         """Part of the Observer pattern (Observable)
         It notifies a certain class, which means that the class will receive a user message"""
 
-        receiver_chat=self.__chats.get(message, None)
+        receiver_chat=self.__chats.get(message.get_chat(), None)
 
         if receiver_chat != None:
             receiver_chat.receive_new_message(message)
@@ -114,10 +115,11 @@ class UserRemoteProxy:
         return message
 
 class UserLoop:
-    def __init__(self, server_user, user_remote_proxy, sleep=0):
+    def __init__(self, server_user, user_remote_proxy, sleep=0, chat_message_class=msg.ChatMessage):
         self.__server_user=server_user
         self.__user_remote_proxy=user_remote_proxy
         self.__sleep=sleep
+        self.__ChatMessage=chat_message_class
 
         self.__is_active=False
 
@@ -141,7 +143,7 @@ class UserLoop:
             is_chat_message = remote_user_message != USER_TICK_MESSAGE
             if is_chat_message:
                 #WARNING: ChatMessage è hard coded, quindi questa funzione è strictly coupled con quella classe
-                message4chat=ChatMessage.from_string(remote_user_message)
+                message4chat=self.__ChatMessage.from_string(remote_user_message)
                 
                 self.__server_user.send_message(message4chat)
 

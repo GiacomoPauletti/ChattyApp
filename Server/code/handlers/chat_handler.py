@@ -84,7 +84,7 @@ class ChatHandler:
             #essendo stata appena creata, la chat non può essere nel registro, così chiamare il metodo .get() mi crea l'oggetto e me lo aggiunge al registro
             chat_obj=self.__active_chat_register.get(chatid)
 
-            self.join_chat(client, client_address, msg)
+            self.join_chat(client, client_address, msg, mute=True)
             self.add_users(client, client_address, msg)
 
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'created {chatid}'))
@@ -109,7 +109,7 @@ class ChatHandler:
             client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to leave {chatid}'))
             return False
 
-    def join_chat(self, client, client_address, msg):
+    def join_chat(self, client, client_address, msg, mute=False):
         chatid=msg.get_chat()
         private_name=self.__auth_user_register.get(client_address[0])
 
@@ -117,10 +117,12 @@ class ChatHandler:
             return True
 
         if self.__user_chat_storage.add_user(chatid, private_name):
-            client.send_with_header(self.__AnswerMessage(answer='success', content=f'joined {chatid}'))
+            if not mute:
+                client.send_with_header(self.__AnswerMessage(answer='success', content=f'joined {chatid}'))
             return True
         else:
-            client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to change {chatid}'))
+            if not mute:
+                client.send_with_header(self.__AnswerMessage(answer='failed', content=f'unable to change {chatid}'))
             return False
 
 

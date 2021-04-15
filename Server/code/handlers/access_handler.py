@@ -100,7 +100,7 @@ class AccessHandler:
             error=self.__user_registrator.get_error()
             answer_msg=self.__AnswerMessage(answer='failed', error=error)
 
-        client.send_with_header(answer_msg.to_string())
+        client.send_with_header(answer_msg)
         return has_registered_correctly
 
     def disconnect(self, *args, **kwargs) -> bool:

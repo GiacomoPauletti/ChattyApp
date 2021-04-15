@@ -18,7 +18,7 @@ active_chat_register=rgs.ActiveChatRegister(active_user_register, TextUserChatSt
 
 #handlers initialization
 access_handler=text_access_handler_factory(authorized_user_register=auth_user_register)
-chat_handler=text_chat_handler_factory(auth_user_register=active_user_register, active_chat_register=active_chat_register)
+chat_handler=text_chat_handler_factory(auth_user_register=auth_user_register, active_chat_register=active_chat_register)
 notification_handler=text_notification_handler_factory(auth_user_register=auth_user_register)
 
 #servers initialization
