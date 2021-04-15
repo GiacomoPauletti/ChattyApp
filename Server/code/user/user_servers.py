@@ -15,7 +15,7 @@ class UnauthUserServer:
 
     def _listen(self):
         with socket.create_server(('', 8000)) as real_server:
-            print("[UnauthUserListener] server is now listening")
+            print("[UnauthUserServer] server is now listening")
 
             server=SocketDecorator(real_server)
 
@@ -24,7 +24,7 @@ class UnauthUserServer:
                 real_client, client_address = server.accept()    #timeout=...
                 client=SocketDecorator(real_client)
 
-                print("[UnauthUserListener] new connection")
+                print("[UnauthUserServer] new connection")
 
                 self.__access_handler.handle(client=client, client_address=client_address)
 
@@ -32,7 +32,7 @@ class UnauthUserServer:
         self.__is_listening=False
 
 
-class AuthUserListener:
+class AuthUserServer:
     def __init__(self, authorized_user_register : AuthorizedUserRegister, user_initializator):
         self.__authorized_user_register=authorized_user_register
         self.__is_listening=False
@@ -44,7 +44,7 @@ class AuthUserListener:
 
     def _listen(self):
         with socket.create_server(('', 10000)) as real_server:
-            print("[AuthUserListener] server is now listening")
+            print("[AuthUserServer] server is now listening")
 
             server=SocketDecorator(real_server)
 
@@ -53,16 +53,16 @@ class AuthUserListener:
                 real_client, client_address = server.accept()    #timeout=...
                 client=SocketDecorator(real_client)
 
-                print(f"[AuthUserListener] new connection at {client_address}")
+                print(f"[AuthUserServer] new connection at {client_address}")
 
                 is_authorized=self.__authorized_user_register.is_authorized_address(client_address[0])
                 if is_authorized:
-                    print("[AuthUserListener] connection authorized")
+                    print("[AuthUserServer] connection authorized")
                     private_name=self.__authorized_user_register.get(client_address)
                     self.__user_initializator.init_user(private_name, client, client_address)
 
                 else:
-                    print("[AuthUserListener] connection not authorized")
+                    print("[AuthUserServer] connection not authorized")
                     #warn the user of being not authorized
                     pass
     def stop(self):
