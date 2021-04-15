@@ -172,7 +172,7 @@ class NotificationStorage(abc.ABC):
         ...
 
 class TextNotificationStorage(NotificationStorage):
-    def __init__(self, notif_message_class, default_path='./database/users'):
+    def __init__(self, notif_message_class=msg.NotificationMessage, default_path='./database/users'):
         self.__NotificationMessage=notif_message_class
         self.__default_path=default_path.rstrip('/')
 

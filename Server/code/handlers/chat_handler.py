@@ -3,7 +3,7 @@ from custom_socket.custom_socket import SocketDecorator
 from storage.chat_storage import TextChatStorageFactory
 from storage.user_storage import TextNotificationStorage
 
-def text_chat_handler_factory(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register):
+def text_chat_handler_factory(user_message_class=msg.ChatRequestMessage, answer_message_class=msg.ChatAnswerMessage, notification_message_class=msg.NotificationMessage, active_chat_register, auth_user_register):
     tcsf=TextChatStorageFactory()
     chat_storage_creator=tcsf.get_chat_storage_creator()
     user_chat_storage=tcsf.get_user_chat_storage()

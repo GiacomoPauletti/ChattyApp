@@ -244,7 +244,7 @@ class MessageStorage(abc.ABC):
         ...
 
 class TextMessageStorage(MessageStorage):
-    def __init__(self, chat_message_class, default_path='./database/chats'):
+    def __init__(self, chat_message_class=msg.ChatMessage, default_path='./database/chats'):
         self.__ChatMessage=chat_message_class
         
         self.__default_path=default_path
