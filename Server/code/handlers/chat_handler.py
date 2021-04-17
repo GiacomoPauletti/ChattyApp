@@ -4,7 +4,7 @@ from storage.chat_storage import TextChatStorageFactory
 from storage.user_storage import TextNotificationStorage
 import message.message as msg
 
-def text_chat_handler_factory(auth_user_register, active_chat_register, user_message_class=msg.ChatRequestMessage, answer_message_class=msg.ChatAnswerMessage, notification_message_class=msg.NotificationMessage):
+def text_chat_handler_factory(auth_user_register, active_chat_register, user_message_class=msg.ChatHandlingRequestMessage, answer_message_class=msg.ChatAnswerMessage, notification_message_class=msg.NotificationMessage):
     tcsf=TextChatStorageFactory()
     chat_storage_creator=tcsf.get_chat_storage_creator()
     user_chat_storage=tcsf.get_user_chat_storage()

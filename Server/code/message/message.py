@@ -9,7 +9,7 @@ class ChatMessage:
         """Create a ChatMessage class from a string of the form: sender_private_name|receiver_chat|content"""
 
         if message.count('|') != 2:
-            print('WARNING: the string passed had not the right number of fields (2)')
+            print('WARNING: the string passed had not the right number of fields (3)')
             return None
 
         sender_private_name, receiver_chat_id, content = message.split('|')
@@ -35,6 +35,35 @@ class ChatMessage:
         return f'{self.__sender_private_name}|{self.__receiver_chat_id.get_value()}|{self.__content}'
 
 class ChatRequestMessage:
+
+    @classmethod
+    def from_string(cls, message : str):
+        """Create a ChatMessage class from a string of the form: sender_private_name|receiver_chat|content"""
+
+        if message.count('|') not in (1, 3):
+            print('WARNING: the string passed had not the right number of fields (2)')
+            return None
+
+        action=message.split('|')[0]
+        chat_message=ChatMessage.from_string(message[message.index('|')+1:])
+
+        return cls(action=action, message=chat_message)
+
+    def __init__(self, action : str, message : ChatMessage):
+        self.__action=action
+        self.__message=message
+
+    def get_action(self):
+        return self.__action
+
+    def get_message(self):
+        return self.__message
+
+    def __str__(self):
+        return f'{self.__action}{str(self.__message)}'
+
+
+class ChatHandlingRequestMessage:
 
     @classmethod
     def from_string(cls, message : str):
