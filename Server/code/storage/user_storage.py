@@ -37,6 +37,7 @@ class UserStorageCreator:
 class TextUserStorageCreator(UserStorageCreator):
     def __init__(self, notification_storage, user_chat_storage, unread_chat_storage, credential_storage, default_path='./database/users'):
         self.__notification_storage=notification_storage
+        self.__user_chat_storage=user_chat_storage
         self.__unread_chat_storage=unread_chat_storage
         self.__credential_storage=credential_storage
 
@@ -53,6 +54,7 @@ class TextUserStorageCreator(UserStorageCreator):
         os.mkdir(new_user_path)
 
         self.__notification_storage._new_user(private_name)
+        self.__user_chat_storage._new_user(private_name)
         self.__unread_chat_storage._new_user(private_name)
         self.__credential_storage._new_user(private_name, credentials)
 
