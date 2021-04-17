@@ -5,7 +5,7 @@ from utilities.registers import AuthorizedUserRegister
 from chat.abcs import Chat
 from message.abcs import Message
 import message.message as msg
-from storage.user_storage import TextUnreadChatStorage
+from storage.user_storage import TextUserChatStorage
 
 USER_TICK_MESSAGE='tick'
 
@@ -16,13 +16,13 @@ def remote_user_proxy_factory(client, client_address):
     return UserRemoteProxy(client, client_address)
 
 def get_text_user_initializator(active_user_register, active_chat_register):
-    return UserInitializator(active_user_register, active_chat_register, TextUnreadChatStorage())
+    return UserInitializator(active_user_register, active_chat_register, TextUserChatStorage())
 
 class UserInitializator:
-    def __init__(self, active_user_register, active_chat_register, unread_chat_register):
+    def __init__(self, active_user_register, active_chat_register, user_chat_storage):
         self.__active_user_register=active_user_register
         self.__active_chat_register=active_chat_register
-        self.__unread_chat_register=unread_chat_register
+        self.__user_chat_storage=user_chat_storage
 
     def init_user(self, private_name, client, client_address):
         server_user=user_factory(private_name)
@@ -37,7 +37,7 @@ class UserInitializator:
 
     def _init_user_chats(self, server_user):
         private_name=server_user.get_private_name()
-        for chatid in self.__unread_chat_register.get(private_name):
+        for chatid in self.__user_chat_storage.get(private_name):
             chat_obj=self.__active_chat_register.get(chatid)
             chat_obj.register_user(server_user)
             server_user.register_chat(chat_obj)
