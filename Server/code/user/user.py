@@ -6,6 +6,7 @@ from chat.abcs import Chat
 from message.abcs import Message
 import message.message as msg
 from storage.user_storage import TextUserChatStorage
+from utilities.chatid import Chatid
 
 USER_TICK_MESSAGE='tick'
 
@@ -38,9 +39,11 @@ class UserInitializator:
     def _init_user_chats(self, server_user):
         private_name=server_user.get_private_name()
         for chatid in self.__user_chat_storage.get(private_name):
-            chat_obj=self.__active_chat_register.get(chatid)
+            chat_obj=self.__active_chat_register.get(chatid, force=True)
             chat_obj.register_user(server_user)
-            server_user.register_chat(chat_obj)
+            server_user.register_chat(chatid, chat_obj)
+
+        print(f'[UserInitializator] server_user chats:', server_user._User__chats)
     
 class User(IObserver, IObservable):     
     def __init__(self, private_name):
@@ -51,19 +54,18 @@ class User(IObserver, IObservable):
     def get_private_name(self):
         return self.__private_name
 
-    def register_chat(self, chat : Chat) -> None:
+    def register_chat(self, chatid: Chatid, chat : Chat) -> None:
         """Part of the Observer pattern (Observable)
         It registers the chats that eventually want to be notified, which means
         that want to know the new message"""
 
-        self.__chats.append(chat)
+        self.__chats[chatid]=chat
 
-    def remove_chat(self, chat : Chat ) -> None:
+    def remove_chat(self, chatid : Chatid ) -> None:
         """Part of the Observer Pattern (Observable)
         It removes the chats. See more info in .register_chat()"""
 
-        if chat in self.__chats:
-            self.__chats.remove(chat)
+        self.__chats.pop(chatid, None)
 
     def send_message(self, message : Message):
         """Part of the Observer pattern (Observable)
@@ -81,7 +83,7 @@ class User(IObserver, IObservable):
         self.__new_messages.append(message)
 
     def receive_unread_messages(self):
-        for chat in self.__chats:
+        for chat in self.__chats.values():
             for message in chat.send_unread_messages(self.__private_name):
                 self.__messages.append(message)
 
@@ -119,7 +121,7 @@ class UserLoop:
         self.__ChatRequestMessage=chat_request_message_class
         self.__ChatMessage=chat_message_class
 
-        self.__timeout
+        self.__timeout=timeout
 
         self.__user_action_map={'chat':self.chat, 'tick':self.tick, 'disconnect':self.disconnect}
 
