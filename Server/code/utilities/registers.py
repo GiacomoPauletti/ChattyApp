@@ -55,12 +55,14 @@ class ActiveChatRegister:
         self.__Chat=chat_class
 
     def add(self, chatid, chat_obj):
+        chatid=str(chatid)
         if not chatid in self.__active_chats.keys():
             self.__active_chats[chatid]=chat_obj
             return True
         return False
 
     def get(self, chatid, force=False):
+        chatid=str(chatid)
         
         is_active=chatid in self.__active_chats.keys() 
         if not is_active and force:

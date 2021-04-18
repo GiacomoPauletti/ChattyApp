@@ -35,7 +35,11 @@ class Chat(IObservable, IObserver):
         It sends to all the users the new message"""
 
         for user in self.__active_users:
-            user.receive_new_message(message)
+            private_name=user.get_private_name()
+            self.__user_chat_storage.increment_user_index(str(self.__chatid), private_name)
+
+            if private_name != message.get_sender():
+                user.receive_new_message(message)
 
     def receive_new_message(self, message : Message) -> None:
         """Part of the Observer pattern (Observer)
@@ -65,7 +69,7 @@ class Chat(IObservable, IObserver):
             self.__user_chat_storage.increment_user_index(self.get_chatid(), private_name)
 
     def get_chatid(self):
-        return self.__chatid.get_value()
+        return str(self.__chatid)
 
 class ChatProxy:
     def __init__(self, chat : Chat):

@@ -32,7 +32,7 @@ class ChatMessage:
         return self.__content
 
     def __str__(self):
-        return f'{self.__sender_private_name}|{self.__receiver_chat_id.get_value()}|{self.__content}'
+        return f'{self.__sender_private_name}|{str(self.__receiver_chat_id)}|{self.__content}'
 
 class ChatRequestMessage:
 
@@ -60,7 +60,7 @@ class ChatRequestMessage:
         return self.__message
 
     def __str__(self):
-        return f'{self.__action}{str(self.__message)}'
+        return f'{self.__action}|{str(self.__message)}'
 
 
 class ChatHandlingRequestMessage:

@@ -41,9 +41,8 @@ class UserInitializator:
         for chatid in self.__user_chat_storage.get(private_name):
             chat_obj=self.__active_chat_register.get(chatid, force=True)
             chat_obj.register_user(server_user)
-            server_user.register_chat(chatid, chat_obj)
+            server_user.register_chat(str(chatid), chat_obj)
 
-        print(f'[UserInitializator] server_user chats:', server_user._User__chats)
     
 class User(IObserver, IObservable):     
     def __init__(self, private_name):
@@ -54,12 +53,12 @@ class User(IObserver, IObservable):
     def get_private_name(self):
         return self.__private_name
 
-    def register_chat(self, chatid: Chatid, chat : Chat) -> None:
+    def register_chat(self, chatid, chat : Chat) -> None:
         """Part of the Observer pattern (Observable)
         It registers the chats that eventually want to be notified, which means
         that want to know the new message"""
 
-        self.__chats[chatid]=chat
+        self.__chats[str(chatid)]=chat
 
     def remove_chat(self, chatid : Chatid ) -> None:
         """Part of the Observer Pattern (Observable)
@@ -71,7 +70,8 @@ class User(IObserver, IObservable):
         """Part of the Observer pattern (Observable)
         It notifies a certain class, which means that the class will receive a user message"""
 
-        receiver_chat=self.__chats.get(message.get_chat(), None)
+        chatid=str(message.get_chat())
+        receiver_chat=self.__chats.get(chatid, None)
 
         if receiver_chat != None:
             receiver_chat.receive_new_message(message)
@@ -109,7 +109,7 @@ class UserRemoteProxy:
 
     def receive_from_remote(self):
         msg=self.__client.recv_with_header()
-        message=msg.from_string()
+        message=str(msg)
         return message
 
 class UserLoop:
@@ -138,6 +138,7 @@ class UserLoop:
         self.__server_user.receive_unread_messages()
 
         self.__is_active=True
+        threading.Thread(target=self._listening_loop).start()
         while self.__is_active:
 
             now=time.time()
@@ -146,15 +147,25 @@ class UserLoop:
                 print('[UserLoop] inactive user: disconnection')
                 self.stop()
 
-            for new_message in self.__server_user.pop_new_messages():
-                self.__user_remote_proxy.send_to_remote(new_message) 
-
             remote_user_message = self.__user_remote_proxy.receive_from_remote()
+
             user_request=self.__ChatRequestMessage.from_string(remote_user_message)
+
+            if not user_request:
+                continue
 
             self.__user_action_map[user_request.get_action()](user_request)
         print('[UserLoop] disconnected from inactive user')
         return None
+
+    def _listening_loop(self):
+        while self.__is_active:
+
+            for new_message in self.__server_user.pop_new_messages():
+                self.__user_remote_proxy.send_to_remote(new_message) 
+
+            time.sleep(3)
+
 
 
     def stop(self):
