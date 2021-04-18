@@ -84,8 +84,7 @@ class User(IObserver, IObservable):
 
     def receive_unread_messages(self):
         for chat in self.__chats.values():
-            for message in chat.send_unread_messages(self.__private_name):
-                self.__messages.append(message)
+            chat.send_unread_messages(self.__private_name)
 
     def get_new_messages(self):
         """ iterate through all messages of the user"""
@@ -106,7 +105,7 @@ class UserRemoteProxy:
         self.__client_address=client_address
 
     def send_to_remote(self, message : Message):
-        self.__client.send_with_header(message.to_string())
+        self.__client.send_with_header(message)
 
     def receive_from_remote(self):
         msg=self.__client.recv_with_header()

@@ -273,17 +273,17 @@ class TextMessageStorage(MessageStorage):
         with open(messages_chat_path, 'a') as msg_file:
             msg_file.write(f'{str(message)}\n')
 
-    def get_messages(self, chatid : Chatid, start : int, end : int) -> Message:
+    def get_messages(self, chatid : Chatid, start : int, end=None) -> Message:
         if not self.is_chat_existing(chatid):
             return None
         
-        if end < start or start < 0:
+        if end and end < start or start < 0:
             return None
         
         messages_chat_path=self.__default_path+f'/{str(chatid)}/messages.txt'
         with open(messages_chat_path, 'r') as f:
             for index, message in enumerate(f):
-                if start <= index < end:
+                if start <= index and (not end or index < end):
                     message.rstrip('\n')
                     final_message=self.__ChatMessage.from_string(message)
                     yield final_message
