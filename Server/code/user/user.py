@@ -112,6 +112,9 @@ class UserRemoteProxy:
         message=str(msg)
         return message
 
+    def close(self):
+        self.__client.close()
+
 class UserLoop:
     def __init__(self, server_user, user_remote_proxy, sleep=0, chat_request_message_class=msg.ChatRequestMessage, chat_message_class=msg.ChatMessage, timeout=60):
         self.__server_user=server_user
@@ -141,12 +144,6 @@ class UserLoop:
         threading.Thread(target=self._listening_loop).start()
         while self.__is_active:
 
-            now=time.time()
-            if now - self.__start_ >= self.__timeout:
-                #+ send disconnection message to user
-                print('[UserLoop] inactive user: disconnection')
-                self.stop()
-
             remote_user_message = self.__user_remote_proxy.receive_from_remote()
 
             user_request=self.__ChatRequestMessage.from_string(remote_user_message)
@@ -155,11 +152,18 @@ class UserLoop:
                 continue
 
             self.__user_action_map[user_request.get_action()](user_request)
-        print('[UserLoop] disconnected from inactive user')
         return None
 
     def _listening_loop(self):
         while self.__is_active:
+
+            now=time.time()
+            if now - self.__start_ >= self.__timeout:
+                #+ send disconnection message to user
+                print('[UserLoop] inactive user: disconnection')
+                self.__user_remote_proxy.close()
+                self.stop()
+                return None
 
             for new_message in self.__server_user.pop_new_messages():
                 self.__user_remote_proxy.send_to_remote(new_message) 

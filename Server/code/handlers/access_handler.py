@@ -43,7 +43,8 @@ class AccessHandler:
         See AccessHandler.login and AccessHandler.register for more info.
         """
 
-        while True:
+        handling=True
+        while handling:
             
             try:
                 msg=client.recv_with_header()
@@ -53,7 +54,9 @@ class AccessHandler:
                 if has_accessed:
                     self.__authorized_user_register.add(client_address[0], msg.get_private_name())
                     print(f'[AccessHandler] the user {msg.get_private_name()} at {client_address} has accessed')
-                    break
+                    client.close()
+                    handling=False
+                    return True
                 print(f'[AccessHandler] the user {msg.get_private_name()} has NOT accessed')
             except Exception as e:
                 #print(f'[AccessHandler] error: {e}')

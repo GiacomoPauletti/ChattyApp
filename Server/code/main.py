@@ -1,6 +1,7 @@
 import abc
 import threading
 import socket
+import time
 
 from chat.chat import Chat
 from user.user import User, get_text_user_initializator
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     notification_server.listen()
     
     is_online=True
+    print("[MAIN] server is now online")
     while is_online:
-        print("[MAIN] server is now online")
         break
     
