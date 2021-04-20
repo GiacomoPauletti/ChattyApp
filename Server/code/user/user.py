@@ -49,6 +49,7 @@ class User(IObserver, IObservable):
         self.__chats={}
         self.__private_name=private_name
         self.__new_messages=[]
+        self.__old_messages=[]
 
     def get_private_name(self):
         return self.__private_name
@@ -78,25 +79,43 @@ class User(IObserver, IObservable):
 
     def receive_new_message(self, message : Message) -> None:
         """Part of the Observer pattern (Observer)
-        It is called by a certain class and it adds a new message to the message list of this user"""
+        It is called by a certain class and it adds a new message to the new messages list of this user"""
 
         self.__new_messages.append(message)
 
-    def receive_unread_messages(self):
-        for chat in self.__chats.values():
-            chat.send_unread_messages(self.__private_name)
-
     def get_new_messages(self):
-        """ iterate through all messages of the user"""
+        """ iterate through all new messages of the user"""
         for message in self.__new_messages:
             yield message
 
     def pop_new_messages(self):
-        """ iterate through all messages of the user and then deletes them"""
+        """ iterate through all new messages of the user and then deletes them"""
         while len(self.__new_messages):
             message=self.__new_messages[0]
             yield message
             self.__new_messages.pop(0)
+
+    def receive_old_message(self, message : Message) -> None:
+        """Part of the Observer pattern (Observer)
+        It is called by a certain class and it adds an old message to the old messages list of this user"""
+
+        self.__old_messages.append(message)
+
+    def get_old_messages(self):
+        """ iterate through all old messages of the user"""
+        for message in self.__old_messages:
+            yield message
+
+    def pop_old_messages(self):
+        """ iterate through all old messages of the user and then deletes them"""
+        while len(self.__old_messages):
+            message=self.__old_messages[0]
+            yield message
+            self.__old_messages.pop(0)
+
+    def receive_unread_messages(self):
+        for chat in self.__chats.values():
+            chat.send_unread_messages(self.__private_name)
 
 
 class UserRemoteProxy:
@@ -166,7 +185,12 @@ class UserLoop:
                 return None
 
             for new_message in self.__server_user.pop_new_messages():
-                self.__user_remote_proxy.send_to_remote(new_message) 
+                answer_message=msg.ChatAnswerMessage(answer='new_message', message=new_message)
+                self.__user_remote_proxy.send_to_remote(answer_message) 
+
+            for old_message in self.__server_user.pop_old_messages():
+                answer_message=msg.ChatAnswerMessage(answer='old_message', message=old_message)
+                self.__user_remote_proxy.send_to_remote(answer_message) 
 
             time.sleep(3)
 
