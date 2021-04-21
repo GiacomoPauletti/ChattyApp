@@ -48,7 +48,7 @@ class ChatRequestMessage:
 
         return cls(action=action, message=chat_message)
 
-    def __init__(self, action : str, message : ChatMessage):
+    def __init__(self, action : str, message : ChatMessage = '||'):
         self.__action=action
         self.__message=message
 
@@ -74,7 +74,7 @@ class ChatAnswerMessage:
 
         return cls(action=action, message=chat_message)
 
-    def __init__(self, answer : str, message : ChatMessage):
+    def __init__(self, answer : str, message : ChatMessage = '||'):
         self.__answer=answer
         self.__message=message
 
@@ -223,7 +223,7 @@ class NotificationAnswerMessage:
 
         return cls(answer=answer, content=content)
 
-    def __init__(self, answer, content):
+    def __init__(self, answer, content=''):
         self.__answer=answer
         self.__content=content
 

@@ -207,7 +207,7 @@ class UserLoop:
         self.__start_=time.time()
 
     def disconnect(self, user_request):
-        client.close()
+        self.__user_remote_proxy.close()
         self.stop()
         
 
