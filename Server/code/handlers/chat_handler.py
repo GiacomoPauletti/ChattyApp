@@ -54,13 +54,15 @@ class ChatHandler:
         self.__notification_storage=notification_storage
 
         self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users}
+        self.__active_clients=[]
 
     def handle(self, client, client_address):
         handle_thread=threading.Thread(target=self._handle, args=(client, client_address))
         handle_thread.start()
 
     def _handle(self, client, client_address):
-        while True:
+        self.__active_clients.append(client_address[0])
+        while client_address[0] in self.__active_clients:
             try:
                 msg=client.recv_with_header()
                 msg=self.__UserMessage.from_string(msg)
@@ -138,6 +140,11 @@ class ChatHandler:
 
             notification_message=self.__NotificationMessage.from_string(f'{private_name}|{msg.get_users_str()}|added to {chatid}')
             self.__notification_storage.add(user, notification_message)
+
+    def disconnect(self, client, client_address, msg):
+        print('[ChatHandler] client disconnected')
+        self.__active_clients.remove(client_address[0])
+        client.close()
 
         
 

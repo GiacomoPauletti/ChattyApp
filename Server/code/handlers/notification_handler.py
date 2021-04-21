@@ -41,7 +41,8 @@ class NotificationHandler:
         self.__AnswerMessage=answer_message_class
         self.__notification_storage=notification_storage
 
-        self.__client_action_map={'get':self.get}  #per ora un utente può solo ricevere i suoi messaggi
+        self.__client_action_map={'get':self.get, 'disconnect':self.disconnect}  #per ora un utente può solo ricevere i suoi messaggi
+        self.__active_clients=[]
 
     def handle(self, client, client_address):
         listen_thread=threading.Thread(target=self._handle, args=(client, client_address))
@@ -49,7 +50,8 @@ class NotificationHandler:
         
     def _handle(self, client, client_address):
 
-        while True:
+        self.__active_clients.append(client_address[0])
+        while client_address[0] in self.__active_clients:
 
             message=client.recv_with_header()
             message=self.__UserMessage.from_string(message)
@@ -84,6 +86,10 @@ class NotificationHandler:
         end_message=self.__AnswerMessage(answer='END', content='END')
         client.send_with_header(str(end_message))
         
+    def disconnect(self, client, client_address, msg):
+        self.__active_clients.remove(client_address)
+        client.close()
+        print('[NotificationMessage] client disconnected')
 
     
 

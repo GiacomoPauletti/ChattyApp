@@ -207,6 +207,7 @@ class UserLoop:
         self.__start_=time.time()
 
     def disconnect(self, user_request):
+        client.close()
         self.stop()
         
 
