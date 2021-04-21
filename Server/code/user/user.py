@@ -117,6 +117,17 @@ class User(IObserver, IObservable):
         for chat in self.__chats.values():
             chat.send_unread_messages(self.__private_name)
 
+    def delete(self):
+        print('[User] user deleted')
+
+        for chat in self.__chats.values():
+            chat.remove_user(self)
+
+        del self
+
+    def __del__(self):
+        print('[User] user totally deleted')
+
 
 class UserRemoteProxy:
     def __init__(self, client, client_address):
@@ -207,8 +218,17 @@ class UserLoop:
         self.__start_=time.time()
 
     def disconnect(self, user_request):
+        print('[UserLoop] client disconnected')
+        #ora si deve anche "distruggere" le classi User e UserProxy quivi usate
+
+        self.__server_user.delete()
+        del self.__server_user
+
         self.__user_remote_proxy.close()
+        del self.__user_remote_proxy
+
         self.stop()
+        del self
         
 
 
