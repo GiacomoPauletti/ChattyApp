@@ -1,5 +1,4 @@
-from socket import socket
-import threading
+import threading, socket, time
 
 from message.abcs import Message
 import message.message as msg
@@ -29,6 +28,9 @@ class AccessHandler:
 
         self.__access_type_map={'login':self.login, 'register':self.register, 'disconnect':self.disconnect}
 
+        self.__active_clients={}
+        self.__timeout=60
+
     def handle(self, client : socket, client_address : tuple) -> None:
 
         handle_access_thread=threading.Thread(target=self._handle, args=(client, client_address))
@@ -43,8 +45,16 @@ class AccessHandler:
         See AccessHandler.login and AccessHandler.register for more info.
         """
 
-        handling=True
-        while handling:
+        start=time.time()
+        self.__active_clients[client_address[0]]=start
+
+        while client_address[0] in self.__active_clients:
+            now=time.time()
+            if start+self.__timeout < now:
+                print('[AccessHandler] timed out')
+                client.close()
+                self.__active_clients.pop(client_address[0])
+                return None
             
             try:
                 msg=client.recv_with_header()
@@ -55,7 +65,7 @@ class AccessHandler:
                     self.__authorized_user_register.add(client_address[0], msg.get_private_name())
                     print(f'[AccessHandler] the user {msg.get_private_name()} at {client_address} has accessed')
                     client.close()
-                    handling=False
+                    self.__active_clients.pop(client_address[0])
                     return True
                 print(f'[AccessHandler] the user {msg.get_private_name()} has NOT accessed')
             except Exception as e:
@@ -101,12 +111,14 @@ class AccessHandler:
         client.send_with_header(answer_msg)
         return has_registered_correctly
 
-    def disconnect(self, *args, **kwargs) -> bool:
-        """AccessHandler.disconnect(self, *args, **kwargs) -> bool
-        
-        WHAT IT DOES
-        It stops the waiting-request loop after a disconnection message of the User
-        """
 
-        return True
+    def disconnect(self, client, client_address, msg):
+        print('[AccessHandler] client disconnected')
+        self.__active_clients.pop(client_address[0])
+        client.close()
+
+    def tick(self, client, client_address, msg):
+        if client_address[0] in self.__active_clients.keys():
+            self.__active_clients[client_address[0]]=time.time()
+        
         

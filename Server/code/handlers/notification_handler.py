@@ -1,4 +1,4 @@
-import socket, threading
+import socket, threading, time
 from custom_socket.custom_socket import SocketDecorator
 from storage.user_storage import TextNotificationStorage
 import message.message as msg
@@ -42,7 +42,8 @@ class NotificationHandler:
         self.__notification_storage=notification_storage
 
         self.__client_action_map={'get':self.get, 'disconnect':self.disconnect}  #per ora un utente può solo ricevere i suoi messaggi
-        self.__active_clients=[]
+        self.__active_clients={}
+        self.__timeout=60
 
     def handle(self, client, client_address):
         listen_thread=threading.Thread(target=self._handle, args=(client, client_address))
@@ -50,14 +51,25 @@ class NotificationHandler:
         
     def _handle(self, client, client_address):
 
-        self.__active_clients.append(client_address[0])
+        start=time.time()
+        self.__active_clients[client_address[0]]=start
+
         while client_address[0] in self.__active_clients:
+            now=time.time()
+            if start+self.__timeout < now:
+                print('[NotificationHandler] timed out')
+                client.close()
+                self.__active_clients.pop(client_address[0])
+                return None
 
-            message=client.recv_with_header()
-            message=self.__UserMessage.from_string(message)
-            print(f'[NotificationHandler] new message')
+            try:
+                message=client.recv_with_header()
+                message=self.__UserMessage.from_string(message)
+                print(f'[NotificationHandler] new message')
 
-            self.__client_action_map[message.get_action()](client, client_address, message)
+                self.__client_action_map[message.get_action()](client, client_address, message)
+            except:
+                continue
 
     def get(self, client, client_address, msg):
         client_address=client_address[0] if type(client_address) == tuple else client_address
@@ -87,9 +99,14 @@ class NotificationHandler:
         client.send_with_header(str(end_message))
         
     def disconnect(self, client, client_address, msg):
-        self.__active_clients.remove(client_address)
+        print('[NotificationHandler] client disconnected')
+        self.__active_clients.pop(client_address[0])
         client.close()
-        print('[NotificationMessage] client disconnected')
+
+    def tick(self, client, client_address, msg):
+        if client_address[0] in self.__active_clients.keys():
+            self.__active_clients[client_address[0]]=time.time()
+
 
     
 

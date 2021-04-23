@@ -158,6 +158,7 @@ class UserLoop:
         self.__user_action_map={'chat':self.chat, 'tick':self.tick, 'disconnect':self.disconnect}
 
         self.__is_active=False
+        self.__timeout=10
 
     def start(self):
         loop_thread=threading.Thread(target=self._loop)
@@ -173,6 +174,9 @@ class UserLoop:
         self.__is_active=True
         threading.Thread(target=self._listening_loop).start()
         while self.__is_active:
+            now=time.time()
+            if self.__start_ + self.__timeout < now:
+                print('[UserLoop] timed out')
 
             remote_user_message = self.__user_remote_proxy.receive_from_remote()
 
@@ -190,7 +194,7 @@ class UserLoop:
             now=time.time()
             if now - self.__start_ >= self.__timeout:
                 #+ send disconnection message to user
-                print('[UserLoop] inactive user: disconnection')
+                print('[UserLoop] timed out')
                 self.__user_remote_proxy.close()
                 self.stop()
                 return None
@@ -229,6 +233,12 @@ class UserLoop:
 
         self.stop()
         del self
+
+
+    def tick(self, client, client_address, msg):
+        self.__start_=time.time()
+
+
         
 
 

@@ -1,4 +1,4 @@
-import threading, socket
+import threading, socket, time
 from custom_socket.custom_socket import SocketDecorator
 from storage.chat_storage import TextChatStorageFactory
 from storage.user_storage import TextNotificationStorage
@@ -53,16 +53,27 @@ class ChatHandler:
         self.__chat_user_storage=chat_user_storage
         self.__notification_storage=notification_storage
 
-        self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users}
-        self.__active_clients=[]
+        self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users, 'disconnect':self.disconnect, 'tick':self.tick}
+        self.__active_clients={}
+        self.__timeout=60
 
     def handle(self, client, client_address):
         handle_thread=threading.Thread(target=self._handle, args=(client, client_address))
         handle_thread.start()
 
     def _handle(self, client, client_address):
-        self.__active_clients.append(client_address[0])
+
+        start=time.time()
+        self.__active_clients[client_address[0]]=start
+
         while client_address[0] in self.__active_clients:
+            now=time.time()
+            if start+self.__timeout < now:
+                print('[ChatHandler] timed out')
+                client.close()
+                self.__active_clients.pop(client_address[0])
+                return None
+
             try:
                 msg=client.recv_with_header()
                 msg=self.__UserMessage.from_string(msg)
@@ -143,8 +154,12 @@ class ChatHandler:
 
     def disconnect(self, client, client_address, msg):
         print('[ChatHandler] client disconnected')
-        self.__active_clients.remove(client_address[0])
+        self.__active_clients.pop(client_address[0])
         client.close()
+
+    def tick(self, client, client_address, msg):
+        if client_address[0] in self.__active_clients.keys():
+            self.__active_clients[client_address[0]]=time.time()
 
         
 
