@@ -3,19 +3,19 @@ from utilities.chatid import Chatid
 from user.abcs import User
 from message.abcs import Message
 from message.message import ChatMessage
-from storage.chat_storage import TextMessageStorage, TextUserChatStorage
+from storage.chat_storage import TextMessageStorage, TextChatUserStorage
 
 message_storage=TextMessageStorage(ChatMessage)
 
 
 class Chat(IObservable, IObserver):
-    def __init__(self, chatid : Chatid, message_storage=TextMessageStorage(ChatMessage), user_chat_storage=TextUserChatStorage()):
+    def __init__(self, chatid : Chatid, message_storage=TextMessageStorage(ChatMessage), chat_user_storage=TextChatUserStorage()):
         self.__chatid=chatid
         self.__all_users=[]
         self.__active_users=[]
 
         self.__message_storage=message_storage
-        self.__user_chat_storage=user_chat_storage
+        self.__chat_user_storage=chat_user_storage
 
     def register_user(self, user: User) -> None:
         """Part of the Observer pattern (Observable)
@@ -36,7 +36,7 @@ class Chat(IObservable, IObserver):
 
         for user in self.__active_users:
             private_name=user.get_private_name()
-            self.__user_chat_storage.increment_user_index(str(self.__chatid), private_name)
+            self.__chat_user_storage.increment_user_index(str(self.__chatid), private_name)
 
             if private_name != message.get_sender():
                 user.receive_new_message(message)
@@ -63,10 +63,10 @@ class Chat(IObservable, IObserver):
             print('[Chat] user is not active')
             return False
 
-        receiver_index=self.__user_chat_storage.get_user_index(self.get_chatid(), private_name)
+        receiver_index=self.__chat_user_storage.get_user_index(self.get_chatid(), private_name)
         for message in self.__message_storage.get_messages(self.get_chatid(), receiver_index):
             receiver.receive_new_message(message)
-            self.__user_chat_storage.increment_user_index(self.get_chatid(), private_name)
+            self.__chat_user_storage.increment_user_index(self.get_chatid(), private_name)
 
     def get_chatid(self):
         return str(self.__chatid)
