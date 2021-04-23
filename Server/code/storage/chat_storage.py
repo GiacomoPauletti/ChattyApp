@@ -14,8 +14,8 @@ class TextChatStorageFactory:
 
         self.__default_path=default_path
 
-    def get_chat_storage_creator(self):
-        return TextChatStorageCreator(self.__message_storage, self.__user_chat_storage, self.__user_right_storage, self.__default_path)
+    def get_facade(self):
+        return TextChatStorageFacade(self.__message_storage, self.__user_chat_storage, self.__user_right_storage, self.__default_path)
 
     def get_user_chat_storage(self):
         return self.__user_chat_storage
@@ -27,16 +27,20 @@ class TextChatStorageFactory:
         return self.__message_storage
 
 
-class ChatStorageCreator(abc.ABC):
+class ChatStorageFacade(abc.ABC):
     @abc.abstractmethod
     def new_chat(self, chatid : Chatid):
+        ...
+
+    @abc.abstractmethod
+    def add_user(self, chatid : Chatid, private_name):
         ...
 
     @abc.abstractmethod
     def is_chat_existing(self, chatid : Chatid):
         ...
 
-class TextChatStorageCreator(ChatStorageCreator):
+class TextChatStorageFacade(ChatStorageFacade):
     def __init__(self, message_storage, user_chat_storage, user_right_storage, default_path='./database/chats'):
         self.__message_storage=message_storage
         self.__user_chat_storage=user_chat_storage
@@ -59,6 +63,10 @@ class TextChatStorageCreator(ChatStorageCreator):
 
         return True
         
+    def add_user(self, chatid, private_name):
+        self.__user_chat_storage.add_user(chatid, private_name)
+        self.__user_right_storage.add_user(chatid, private_name)
+
     def is_chat_existing(self, chatid : Chatid) -> bool:
         all_chats=os.walk(self.__default_path).__next__()[1]  
 
