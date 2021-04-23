@@ -7,10 +7,10 @@ import message.message as msg
 def text_chat_handler_factory(auth_user_register, active_chat_register, user_message_class=msg.ChatHandlingRequestMessage, answer_message_class=msg.ChatHandlingAnswerMessage, notification_message_class=msg.NotificationMessage):
     tcsf=TextChatStorageFactory()
     chat_storage_facade=tcsf.get_facade()
-    user_chat_storage=tcsf.get_chat_user_storage()
+    chat_user_storage=tcsf.get_chat_user_storage()
     notification_storage=TextNotificationStorage(notification_message_class)
 
-    return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, user_chat_storage, notification_storage)
+    return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, notification_storage)
 
 
 class ChatHandlerServer:
@@ -41,7 +41,7 @@ class ChatHandlerServer:
         self.__is_listening=False
 
 class ChatHandler:
-    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, user_chat_storage, notification_storage):
+    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, notification_storage):
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__NotificationMessage=notification_message_class
@@ -50,7 +50,7 @@ class ChatHandler:
         self.__auth_user_register=auth_user_register
         
         self.__chat_storage_facade=chat_storage_facade
-        self.__user_chat_storage=user_chat_storage
+        self.__chat_user_storage=chat_user_storage
         self.__notification_storage=notification_storage
 
         self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users}
@@ -101,10 +101,10 @@ class ChatHandler:
         chatid=msg.get_chat()
         private_name=self.__auth_user_register.get(client_address[0])
 
-        if not private_name in self.__user_chat_storage.get_users(chatid):
+        if not private_name in self.__chat_user_storage.get_users(chatid):
             return True
 
-        if self.__user_chat_storage.remove_user(chatid, private_name):
+        if self.__chat_user_storage.remove_user(chatid, private_name):
             client.send_with_header(self.__AnswerMessage(answer='success', content=f'left {chatid}'))
             return True
         else:
@@ -115,10 +115,10 @@ class ChatHandler:
         chatid=msg.get_chat()
         private_name=self.__auth_user_register.get(client_address[0])
 
-        if private_name in self.__user_chat_storage.get_users(chatid):
+        if private_name in self.__chat_user_storage.get_users(chatid):
             return True
 
-        if self.__user_chat_storage.add_user(chatid, private_name):
+        if self.__chat_storage_facade.add_user(chatid, private_name):
             if not mute:
                 client.send_with_header(self.__AnswerMessage(answer='success', content=f'joined {chatid}'))
             return True
@@ -133,10 +133,10 @@ class ChatHandler:
         private_name=self.__auth_user_register.get(client_address[0])
 
         for user in msg.get_users():
-            if user in self.__user_chat_storage.get_users(chatid):
+            if user in self.__chat_user_storage.get_users(chatid):
                 continue
 
-            self.__user_chat_storage.add_user(chatid, user)
+            self.__chat_storage_facade.add_user(chatid, user)
 
             notification_message=self.__NotificationMessage.from_string(f'{private_name}|{msg.get_users_str()}|added to {chatid}')
             self.__notification_storage.add(user, notification_message)
