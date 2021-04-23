@@ -7,7 +7,7 @@ import message.message as msg
 def text_chat_handler_factory(auth_user_register, active_chat_register, user_message_class=msg.ChatHandlingRequestMessage, answer_message_class=msg.ChatHandlingAnswerMessage, notification_message_class=msg.NotificationMessage):
     tcsf=TextChatStorageFactory()
     chat_storage_facade=tcsf.get_facade()
-    user_chat_storage=tcsf.get_user_chat_storage()
+    user_chat_storage=tcsf.get_chat_user_storage()
     notification_storage=TextNotificationStorage(notification_message_class)
 
     return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, user_chat_storage, notification_storage)

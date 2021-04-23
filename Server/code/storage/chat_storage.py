@@ -8,17 +8,17 @@ import os
 
 class TextChatStorageFactory:
     def __init__(self, default_path='./database/chats'):
-        self.__user_chat_storage=TextUserChatStorage(default_path=default_path)
+        self.__chat_user_storage=TextChatUserStorage(default_path=default_path)
         self.__user_right_storage=TextUserRightStorage(default_path=default_path)
         self.__message_storage=TextMessageStorage(chat_message_class=msg.ChatMessage, default_path=default_path)
 
         self.__default_path=default_path
 
     def get_facade(self):
-        return TextChatStorageFacade(self.__message_storage, self.__user_chat_storage, self.__user_right_storage, self.__default_path)
+        return TextChatStorageFacade(self.__message_storage, self.__chat_user_storage, self.__user_right_storage, self.__default_path)
 
-    def get_user_chat_storage(self):
-        return self.__user_chat_storage
+    def get_chat_user_storage(self):
+        return self.__chat_user_storage
 
     def get_user_right_storage(self):
         return self.__user_right_storage
@@ -41,9 +41,9 @@ class ChatStorageFacade(abc.ABC):
         ...
 
 class TextChatStorageFacade(ChatStorageFacade):
-    def __init__(self, message_storage, user_chat_storage, user_right_storage, default_path='./database/chats'):
+    def __init__(self, message_storage, chat_user_storage, user_right_storage, default_path='./database/chats'):
         self.__message_storage=message_storage
-        self.__user_chat_storage=user_chat_storage
+        self.__chat_user_storage=chat_user_storage
         self.__user_right_storage=user_right_storage
         
         self.__default_path=default_path
@@ -58,13 +58,13 @@ class TextChatStorageFacade(ChatStorageFacade):
         os.mkdir(new_chat_path)
 
         self.__message_storage._new_chat(chatid)
-        self.__user_chat_storage._new_chat(chatid)
+        self.__chat_user_storage._new_chat(chatid)
         self.__user_right_storage._new_chat(chatid)
 
         return True
         
     def add_user(self, chatid, private_name):
-        self.__user_chat_storage.add_user(chatid, private_name)
+        self.__chat_user_storage.add_user(chatid, private_name)
         self.__user_right_storage.add_user(chatid, private_name)
 
     def is_chat_existing(self, chatid : Chatid) -> bool:
@@ -84,7 +84,7 @@ def _get_num_of_lines(path):
             pass
     return i+1
 
-class UserChatStorage(abc.ABC):
+class ChatUserStorage(abc.ABC):
 
     @abc.abstractmethod
     def _new_chat(self, chatid : Chatid):
@@ -116,7 +116,7 @@ class UserChatStorage(abc.ABC):
     def get_maximum_index(self, chatid : Chatid) -> int:
         ...
 
-class TextUserChatStorage(UserChatStorage):
+class TextChatUserStorage(ChatUserStorage):
     def __init__(self, default_path='./database/chats'):
         self.__default_path=default_path
 
@@ -143,14 +143,14 @@ class TextUserChatStorage(UserChatStorage):
         if self.get_user_index(chatid, private_name):
             return False
 
-        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
+        chat_user_path=self.__default_path + f'/{str(chatid)}/users.txt'
         
         for user, index in self.__get_indexes(chatid): 
             if user == private_name:
                 print(f'[ChatStorage] the user {private_name} has already been added to {str(chatid)}')
                 return None
 
-        open(user_chat_path, 'a').write(f'{private_name}:0\n')
+        open(chat_user_path, 'a').write(f'{private_name}:0\n')
 
         return True
 
@@ -160,11 +160,11 @@ class TextUserChatStorage(UserChatStorage):
 
     def remove_user(self, chatid : Chatid, private_name : str):
 
-        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
+        chat_user_path=self.__default_path + f'/{str(chatid)}/users.txt'
 
         indexes={user:index for user, index in self.__get_indexes(chatid)}
 
-        with open(user_chat_path, 'w') as f:
+        with open(chat_user_path, 'w') as f:
             for user, index in indexes.items():
                 if not user == private_name:
                     f.write(f'{user}:{index}\n')
@@ -182,9 +182,9 @@ class TextUserChatStorage(UserChatStorage):
         if not self.is_chat_existing(chatid):
             return None
 
-        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
+        chat_user_path=self.__default_path + f'/{str(chatid)}/users.txt'
 
-        lines=open(user_chat_path, 'r').readlines()
+        lines=open(chat_user_path, 'r').readlines()
         if len(lines)==0:
             return None
 
@@ -225,8 +225,8 @@ class TextUserChatStorage(UserChatStorage):
 
         user_indexes[private_name] += incrementor
 
-        user_chat_path=self.__default_path + f'/{str(chatid)}/users.txt'
-        with open(user_chat_path, 'w') as f:
+        chat_user_path=self.__default_path + f'/{str(chatid)}/users.txt'
+        with open(chat_user_path, 'w') as f:
             for user, index in user_indexes.items():
                 f.write(f'{user}:{index}\n')
 
