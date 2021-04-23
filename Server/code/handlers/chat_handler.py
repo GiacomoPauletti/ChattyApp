@@ -6,11 +6,11 @@ import message.message as msg
 
 def text_chat_handler_factory(auth_user_register, active_chat_register, user_message_class=msg.ChatHandlingRequestMessage, answer_message_class=msg.ChatHandlingAnswerMessage, notification_message_class=msg.NotificationMessage):
     tcsf=TextChatStorageFactory()
-    chat_storage_creator=tcsf.get_chat_storage_creator()
+    chat_storage_facade=tcsf.get_facade()
     user_chat_storage=tcsf.get_user_chat_storage()
     notification_storage=TextNotificationStorage(notification_message_class)
 
-    return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_creator, user_chat_storage, notification_storage)
+    return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, user_chat_storage, notification_storage)
 
 
 class ChatHandlerServer:
@@ -41,7 +41,7 @@ class ChatHandlerServer:
         self.__is_listening=False
 
 class ChatHandler:
-    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_creator, user_chat_storage, notification_storage):
+    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, user_chat_storage, notification_storage):
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__NotificationMessage=notification_message_class
@@ -49,7 +49,7 @@ class ChatHandler:
         self.__active_chat_register=active_chat_register
         self.__auth_user_register=auth_user_register
         
-        self.__chat_storage_creator=chat_storage_creator
+        self.__chat_storage_facade=chat_storage_facade
         self.__user_chat_storage=user_chat_storage
         self.__notification_storage=notification_storage
 
@@ -81,7 +81,7 @@ class ChatHandler:
             return False
 
         chatid=msg.get_chat()
-        if self.__chat_storage_creator.new_chat(chatid):
+        if self.__chat_storage_facade.new_chat(chatid):
             print('[ChatHandler] new chat created')
             #essendo stata appena creata, la chat non può essere nel registro, così chiamare il metodo .get() mi crea l'oggetto e me lo aggiunge al registro
             chat_obj=self.__active_chat_register.get(chatid)
