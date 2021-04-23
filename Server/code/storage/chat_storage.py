@@ -64,8 +64,10 @@ class TextChatStorageFacade(ChatStorageFacade):
         return True
         
     def add_user(self, chatid, private_name):
-        self.__chat_user_storage.add_user(chatid, private_name)
-        self.__user_right_storage.add_user(chatid, private_name)
+        is_created = self.__chat_user_storage.add_user(chatid, private_name) and self.__user_right_storage.add_user(chatid, private_name)
+        if is_created: 
+            return True
+        
 
     def is_chat_existing(self, chatid : Chatid) -> bool:
         all_chats=os.walk(self.__default_path).__next__()[1]  
@@ -282,6 +284,8 @@ class TextUserRightStorage(UserRightStorage):
             for right in self.__rights:
                 f.write(':0')
             f.write('\n')
+
+        return True
         
     def _get_user(self, chatid, private_name):
         users_path=self.__default_path+f'/{str(chatid)}/user_rights.txt'
@@ -328,10 +332,9 @@ class TextUserRightStorage(UserRightStorage):
           
 
         with open(users_path, 'w') as f:
-            for user_right in users_rights[:-1]:
+            for user_right in users_rights:
                 f.write(f"{':'.join(user_right)}\n")
 
-            f.write(':'.join(users_rights[-1]))
 
 
 
