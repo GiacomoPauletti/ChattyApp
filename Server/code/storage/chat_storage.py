@@ -9,15 +9,19 @@ import os
 class TextChatStorageFactory:
     def __init__(self, default_path='./database/chats'):
         self.__user_chat_storage=TextUserChatStorage(default_path=default_path)
+        self.__user_right_storage=TextUserRightStorage(default_path=default_path)
         self.__message_storage=TextMessageStorage(chat_message_class=msg.ChatMessage, default_path=default_path)
 
         self.__default_path=default_path
 
     def get_chat_storage_creator(self):
-        return TextChatStorageCreator(self.__message_storage, self.__user_chat_storage, self.__default_path)
+        return TextChatStorageCreator(self.__message_storage, self.__user_chat_storage, self.__user_right_storage, self.__default_path)
 
     def get_user_chat_storage(self):
         return self.__user_chat_storage
+
+    def get_user_right_storage(self):
+        return self.__user_right_storage
 
     def get_message_storage(self):
         return self.__message_storage
@@ -33,9 +37,10 @@ class ChatStorageCreator(abc.ABC):
         ...
 
 class TextChatStorageCreator(ChatStorageCreator):
-    def __init__(self, message_storage, user_chat_storage, default_path='./database/chats'):
+    def __init__(self, message_storage, user_chat_storage, user_right_storage, default_path='./database/chats'):
         self.__message_storage=message_storage
         self.__user_chat_storage=user_chat_storage
+        self.__user_right_storage=user_right_storage
         
         self.__default_path=default_path
 
@@ -50,6 +55,7 @@ class TextChatStorageCreator(ChatStorageCreator):
 
         self.__message_storage._new_chat(chatid)
         self.__user_chat_storage._new_chat(chatid)
+        self.__user_right_storage._new_chat(chatid)
 
         return True
         
