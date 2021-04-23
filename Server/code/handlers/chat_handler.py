@@ -14,6 +14,7 @@ def text_chat_handler_factory(auth_user_register, active_chat_register, user_mes
     return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, user_right_storage, notification_storage)
 
 
+
 class ChatHandlerServer:
     def __init__(self, chat_handler):
         self.__address=('', 11000)
@@ -43,6 +44,7 @@ class ChatHandlerServer:
 
 class ChatHandler:
     def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, user_right_storage, notification_storage):
+    
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__NotificationMessage=notification_message_class
@@ -53,6 +55,7 @@ class ChatHandler:
         self.__chat_storage_facade=chat_storage_facade
         self.__chat_user_storage=chat_user_storage
         self.__user_right_storage=user_right_storage
+
         self.__notification_storage=notification_storage
 
         self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users}
