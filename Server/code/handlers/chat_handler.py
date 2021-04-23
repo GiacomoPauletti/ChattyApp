@@ -8,9 +8,10 @@ def text_chat_handler_factory(auth_user_register, active_chat_register, user_mes
     tcsf=TextChatStorageFactory()
     chat_storage_facade=tcsf.get_facade()
     chat_user_storage=tcsf.get_chat_user_storage()
+    user_right_storage=tcsf.get_user_right_storage()
     notification_storage=TextNotificationStorage(notification_message_class)
 
-    return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, notification_storage)
+    return ChatHandler(user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, user_right_storage, notification_storage)
 
 
 class ChatHandlerServer:
@@ -41,7 +42,7 @@ class ChatHandlerServer:
         self.__is_listening=False
 
 class ChatHandler:
-    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, notification_storage):
+    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, user_right_storage, notification_storage):
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__NotificationMessage=notification_message_class
@@ -51,6 +52,7 @@ class ChatHandler:
         
         self.__chat_storage_facade=chat_storage_facade
         self.__chat_user_storage=chat_user_storage
+        self.__user_right_storage=user_right_storage
         self.__notification_storage=notification_storage
 
         self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users}
@@ -131,6 +133,13 @@ class ChatHandler:
     def add_users(self, client, client_address, msg):
         chatid=msg.get_chat()
         private_name=self.__auth_user_register.get(client_address[0])
+
+        rights={right[0]:right[1] for right in self.__user_right_storage.get_rights(chatid, private_name)}
+        if not rights['addition']:
+            print('[ChatHandler] user with no addition right trying to add users')
+            answer_msg=self.__AnswerMessage(answer='failed', content='no rights for adding other users')
+            client.send_with_header(answer_msg)
+            return False
 
         for user in msg.get_users():
             if user in self.__chat_user_storage.get_users(chatid):
