@@ -230,6 +230,97 @@ class TextUserChatStorage(UserChatStorage):
         messages_chat_path=self.__default_path+f'/{str(chatid)}/messages.txt'        
         return _get_num_of_lines(messages_chat_path)
 
+class UserRightStorage(abc.ABC):
+    @abc.abstractmethod
+    def _new_chat(self, chatid : Chatid):
+        ...
+
+    @abc.abstractmethod
+    def add_user(self, chatid, private_name : str):
+        ...
+
+    @abc.abstractmethod
+    def get_rights(self, chatid, private_name : str): #o ritorna un dict o è un iterator
+        ...
+
+    @abc.abstractmethod
+    def set_rights(self, chatid, private_name: str, rights : dict):
+        ...
+
+
+class TextUserRightStorage(UserRightStorage):
+    def __init__(self, default_path='./database/chats'):
+        self.__default_path=default_path
+        self.__rights=['addition', 'elimination', 'ranking']
+
+    def _new_chat(self, chatid):
+
+        new_users_path=self.__default_path+f'/{str(chatid)}/user_rights.txt'
+        open(new_users_path, 'w')
+
+    def add_user(self, chatid, private_name):
+        if self._get_user(chatid, private_name):
+            return False
+
+        users_path=self.__default_path+f'/{str(chatid)}/user_rights.txt'
+        with open(users_path, 'a') as f:
+            f.write(f'{private_name}')
+            for right in self.__rights:
+                f.write(':0')
+            f.write('\n')
+        
+    def _get_user(self, chatid, private_name):
+        users_path=self.__default_path+f'/{str(chatid)}/user_rights.txt'
+        with open(users_path, 'r') as f:
+            for line in f.readlines():
+                line=line.rstrip('\n')
+                values=line.split(':')
+                
+                if values[0] == private_name:
+                    return values
+
+    def get_rights(self, chatid, private_name):
+        user_rights=self._get_user(chatid, private_name)
+        if not user_rights:
+            return False
+        
+        for right, value in zip(self.__rights, user_rights[1:]):
+            yield right, bool(int(value))
+
+    def set_rights(self, chatid, private_name, rights):
+        if not self._get_user(chatid, private_name):
+            return False
+
+        users_path=self.__default_path+f'/{str(chatid)}/user_rights.txt'
+                
+        with open(users_path, 'r') as f:
+            
+            users_rights=[]
+            for line in f.readlines():
+                line=line.rstrip('\n')
+                users_rights.append([])
+
+                for value in line.split(':'):
+                    users_rights[-1].append(value)
+
+
+        for uindex, user_right in enumerate(users_rights):
+            if user_right[0]==private_name:
+                for right, value in rights.items():
+                    if right in self.__rights:
+                        index=self.__rights.index(right)
+                        users_rights[uindex][index+1]=str(value)
+                
+          
+
+        with open(users_path, 'w') as f:
+            for user_right in users_rights[:-1]:
+                f.write(f"{':'.join(user_right)}\n")
+
+            f.write(':'.join(users_rights[-1]))
+
+
+
 class MessageStorage(abc.ABC):
     @abc.abstractmethod
     def _new_chat(self, chatid : Chatid):
