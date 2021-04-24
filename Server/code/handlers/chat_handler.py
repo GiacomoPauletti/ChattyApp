@@ -14,10 +14,13 @@ def text_chat_handler_factory(auth_user_register, active_chat_register, user_mes
 
 
 class ChatHandlerServer:
-    def __init__(self, chat_handler):
+    def __init__(self, chat_handler, timeout=120):
         self.__address=('', 11000)
         self.__is_listening=False
+        self.__timeout=timeout
         self.__chat_handler=chat_handler
+
+        self.__chat_handler.set_timeout(self.__timeout)
 
     def listen(self):
         listen_thread=threading.Thread(target=self._listen)
@@ -31,8 +34,10 @@ class ChatHandlerServer:
             self.__is_listening=True
             while self.__is_listening:
                 real_client, address=server.accept()
-                print('[ChatHandlerServer] new connection')
+                real_client.settimeout(self.__timeout)
+
                 client=SocketDecorator(real_client)
+                print('[ChatHandlerServer] new connection')
 
                 self.__chat_handler.handle(client, address)
     
@@ -41,7 +46,7 @@ class ChatHandlerServer:
         self.__is_listening=False
 
 class ChatHandler:
-    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, notification_storage):
+    def __init__(self, user_message_class, answer_message_class, notification_message_class, active_chat_register, auth_user_register, chat_storage_facade, chat_user_storage, notification_storage, timeout=120):
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__NotificationMessage=notification_message_class
@@ -55,7 +60,7 @@ class ChatHandler:
 
         self.__client_action_map={'create_chat':self.create_chat, 'leave_chat':self.leave_chat, 'join_chat':self.join_chat, 'add_users':self.add_users, 'disconnect':self.disconnect, 'tick':self.tick}
         self.__active_clients={}
-        self.__timeout=60
+        self.__timeout=timeout
 
     def handle(self, client, client_address):
         handle_thread=threading.Thread(target=self._handle, args=(client, client_address))
@@ -82,6 +87,12 @@ class ChatHandler:
                 pass
 
             self.__client_action_map[msg.get_action()](client=client, client_address=client_address, msg=msg)
+
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
 
     def create_chat(self, client, client_address, msg):
         #generazione di un nuovo chatid (forse) al posto di questo commento

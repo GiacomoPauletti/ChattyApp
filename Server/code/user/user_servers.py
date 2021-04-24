@@ -5,9 +5,10 @@ from handlers.access_handler import AccessHandler
 from custom_socket.custom_socket import SocketDecorator
 
 class UnauthUserServer:
-    def __init__(self, access_handler : AccessHandler):
+    def __init__(self, access_handler : AccessHandler, timeout=30):
         self.__access_handler=access_handler 
         self.__is_listening=False
+        self.__timeout=timeout
 
     def listen(self):
         listen_thread=threading.Thread(target=self._listen)
@@ -22,6 +23,7 @@ class UnauthUserServer:
             self.__is_listening=True
             while self.__is_listening:
                 real_client, client_address = server.accept()    #timeout=...
+                real_client.settimeout(self.__timeout)
                 client=SocketDecorator(real_client)
 
                 print("[UnauthUserServer] new connection")
@@ -31,12 +33,22 @@ class UnauthUserServer:
     def stop(self):
         self.__is_listening=False
 
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
+
 
 class AuthUserServer:
-    def __init__(self, authorized_user_register : AuthorizedUserRegister, user_initializator):
+    def __init__(self, authorized_user_register : AuthorizedUserRegister, user_initializator, timeout=600):
         self.__authorized_user_register=authorized_user_register
         self.__is_listening=False
+        self.__timeout=timeout
+
         self.__user_initializator=user_initializator
+        self.__user_initializator.set_timeout(self.__timeout)
+
 
     def listen(self):
         listen_thread=threading.Thread(target=self._listen)
@@ -52,6 +64,7 @@ class AuthUserServer:
             while self.__is_listening:
                 real_client, client_address = server.accept()    #timeout=...
                 client=SocketDecorator(real_client)
+                real_client.settimeout(self.__timeout)
 
                 print(f"[AuthUserServer] new connection at {client_address}")
 
@@ -69,4 +82,9 @@ class AuthUserServer:
     def stop(self):
         self.__is_listening=False
 
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
 

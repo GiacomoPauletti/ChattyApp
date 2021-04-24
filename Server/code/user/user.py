@@ -20,10 +20,12 @@ def get_text_user_initializator(active_user_register, active_chat_register):
     return UserInitializator(active_user_register, active_chat_register, TextUserChatStorage())
 
 class UserInitializator:
-    def __init__(self, active_user_register, active_chat_register, user_chat_storage):
+    def __init__(self, active_user_register, active_chat_register, user_chat_storage, timeout=600):
         self.__active_user_register=active_user_register
         self.__active_chat_register=active_chat_register
         self.__user_chat_storage=user_chat_storage
+
+        self.__timeout=timeout
 
     def init_user(self, private_name, client, client_address):
         server_user=user_factory(private_name)
@@ -33,7 +35,7 @@ class UserInitializator:
 
         self.__active_user_register.add(private_name, server_user)
 
-        user_loop=UserLoop(server_user, remote_user_proxy)
+        user_loop=UserLoop(server_user, remote_user_proxy, timeout=self.__timeout)
         user_loop.start()
 
     def _init_user_chats(self, server_user):
@@ -43,6 +45,11 @@ class UserInitializator:
             chat_obj.register_user(server_user)
             server_user.register_chat(str(chatid), chat_obj)
 
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
     
 class User(IObserver, IObservable):     
     def __init__(self, private_name):
@@ -146,7 +153,7 @@ class UserRemoteProxy:
         self.__client.close()
 
 class UserLoop:
-    def __init__(self, server_user, user_remote_proxy, sleep=0, chat_request_message_class=msg.ChatRequestMessage, chat_message_class=msg.ChatMessage, timeout=60):
+    def __init__(self, server_user, user_remote_proxy, sleep=0, chat_request_message_class=msg.ChatRequestMessage, chat_message_class=msg.ChatMessage, timeout=600):
         self.__server_user=server_user
         self.__user_remote_proxy=user_remote_proxy
         self.__sleep=sleep
@@ -158,7 +165,7 @@ class UserLoop:
         self.__user_action_map={'chat':self.chat, 'tick':self.tick, 'disconnect':self.disconnect}
 
         self.__is_active=False
-        self.__timeout=10
+        self.__timeout=timeout
 
     def start(self):
         loop_thread=threading.Thread(target=self._loop)
@@ -178,7 +185,10 @@ class UserLoop:
             if self.__start_ + self.__timeout < now:
                 print('[UserLoop] timed out')
 
-            remote_user_message = self.__user_remote_proxy.receive_from_remote()
+            try:
+                remote_user_message = self.__user_remote_proxy.receive_from_remote()
+            except:
+                continue
 
             user_request=self.__ChatRequestMessage.from_string(remote_user_message)
 
@@ -210,10 +220,14 @@ class UserLoop:
             time.sleep(3)
 
 
-
     def stop(self):
         self.__is_active=False
 
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
     def chat(self, user_request):
         chat_message=user_request.get_message()
         self.__server_user.send_message(chat_message)

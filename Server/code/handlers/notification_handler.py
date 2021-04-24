@@ -8,10 +8,13 @@ def text_notification_handler_factory(auth_user_register, user_message_class=msg
     return NotificationHandler(user_message_class, answer_message_class, auth_user_register, notification_storage)
 
 class NotificationServer:
-    def __init__(self, notification_handler):
+    def __init__(self, notification_handler, timeout=120):
         self.__is_listening=False
         self.__notification_handler=notification_handler
         self.__address=('', 12000)
+
+        self.__timeout=timeout
+        self.__notification_handler.set_timeout(timeout)
 
     def listen(self):
         listen_thread=threading.Thread(target=self._listen)
@@ -27,19 +30,28 @@ class NotificationServer:
             self.__is_listening=True
             while self.__is_listening:
                 real_client, client_address = real_server.accept()
+                real_client.settimeout(self.__timeout)
 
                 print('[NotificationServer] new connection')
 
                 client=SocketDecorator(real_client)
                 self.__notification_handler.handle(client, client_address)
 
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
+
             
 class NotificationHandler:
-    def __init__(self, user_message_class, answer_message_class, auth_user_register, notification_storage):
+    def __init__(self, user_message_class, answer_message_class, auth_user_register, notification_storage, timeout=120):
         self.__auth_user_register=auth_user_register
         self.__UserMessage=user_message_class
         self.__AnswerMessage=answer_message_class
         self.__notification_storage=notification_storage
+
+        self.__timeout=timeout
 
         self.__client_action_map={'get':self.get, 'disconnect':self.disconnect}  #per ora un utente può solo ricevere i suoi messaggi
         self.__active_clients={}
@@ -70,6 +82,12 @@ class NotificationHandler:
                 self.__client_action_map[message.get_action()](client, client_address, message)
             except:
                 continue
+
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
 
     def get(self, client, client_address, msg):
         client_address=client_address[0] if type(client_address) == tuple else client_address

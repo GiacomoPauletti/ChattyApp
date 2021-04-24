@@ -9,15 +9,15 @@ from utilities.registers import AuthorizedUserRegister
 #si può creare una classe socket personalizzata che possiede anche il
 #metodo "socket.recv()"
 
-def text_access_handler_factory(authorized_user_register, users_database_path='./database/users', user_message_class=msg.AccessRequestMessage, answer_message_class=msg.AccessAnswerMessage):
+def text_access_handler_factory(authorized_user_register, users_database_path='./database/users', user_message_class=msg.AccessRequestMessage, answer_message_class=msg.AccessAnswerMessage, timeout=60):
     tuaf=accessing.TextUserAccesserFactory(users_database_path)
     user_logger=tuaf.get_logger()
     user_registrator=tuaf.get_registrator()
 
-    return AccessHandler(user_logger=user_logger, user_registrator=user_registrator, user_message_class=user_message_class, answer_message_class=answer_message_class, authorized_user_register=authorized_user_register)
+    return AccessHandler(user_logger=user_logger, user_registrator=user_registrator, user_message_class=user_message_class, answer_message_class=answer_message_class, authorized_user_register=authorized_user_register, timeout=timeout)
 
 class AccessHandler:
-    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message_class, answer_message_class, authorized_user_register : AuthorizedUserRegister):
+    def __init__(self, user_logger : UserLogger, user_registrator : UserRegister, user_message_class, answer_message_class, authorized_user_register : AuthorizedUserRegister, timeout=60):
         self.__user_logger=user_logger
         self.__user_registrator=user_registrator
 
@@ -29,7 +29,7 @@ class AccessHandler:
         self.__access_type_map={'login':self.login, 'register':self.register, 'disconnect':self.disconnect}
 
         self.__active_clients={}
-        self.__timeout=60
+        self.__timeout=timeout
 
     def handle(self, client : socket, client_address : tuple) -> None:
 
@@ -71,6 +71,12 @@ class AccessHandler:
             except Exception as e:
                 #print(f'[AccessHandler] error: {e}')
                 continue
+
+    def set_timeout(self, timeout):
+        self.__timeout=timeout
+
+    def get_timeout(self):
+        return self.__timeout
 
     def login(self, client : socket, client_address : tuple, msg : Message):
         """AccessHandler.login(self, client : socket,, client_address : tuple, msg : Message) -> bool
