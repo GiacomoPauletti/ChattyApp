@@ -1,3 +1,6 @@
+from utilities.singleton import Singleton
+
+@Singleton
 class AuthorizedUserRegister:
 
     def __init__(self, maximum=None):
@@ -24,6 +27,7 @@ class AuthorizedUserRegister:
         return self.__auth_dict.pop(address, None)
 
 
+@Singleton
 class ActiveUserRegister:
 
     def __init__(self):
@@ -45,6 +49,7 @@ class ActiveUserRegister:
         return self.__active_users.pop(private_name, None)
 
 
+@Singleton
 class ActiveChatRegister:
 
     def __init__(self, active_user_register, user_chat_storage, chat_class):
@@ -89,29 +94,4 @@ class ActiveChatRegister:
         return chat_obj
 
 
-"""
-class ActiveUserList:
-    def __init__(self):
-        self.__active_users={}
-    
-    def add_user(self, user : User, address : str):
-        self.__active_users[address]=user
-
-    def remove_by_address(self, address):
-        self.__active_users.pop(address, False)
-
-    def is_address_active(self, address : str):
-        return address in self.__active_users.keys()
-    
-    def is_active(self, user : User):
-        return user in self.__active_users.values()
-        
-    def find_by_address(self, address : str):
-        return self.__active_users.get(address, None)
-
-    def find_address_by_user(self, user : User):
-        for (current_address, current_user) in self.__active_users:
-            if current_user == user:
-                return current_address
-"""
 
