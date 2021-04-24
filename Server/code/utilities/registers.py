@@ -1,5 +1,15 @@
 from utilities.singleton import Singleton
 
+class RegisterFactory:
+    def get_authorized_user_register(self, *args, **kwargs):
+        return AuthorizedUserRegister.instance(*args, **kwargs)
+
+    def get_active_user_register(self, *args, **kwargs):
+        return ActiveUserRegister.instance(*args, **kwargs)
+
+    def get_active_chat_register(self, *args, **kwargs):
+        return ActiveChatRegister.instance(*args, **kwargs)
+
 @Singleton
 class AuthorizedUserRegister:
 
